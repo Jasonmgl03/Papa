@@ -42,3 +42,21 @@ Im Druckdialog kannst du auch „Als PDF speichern“ wählen.
 Unter „Export & Daten“:
 - **Firma / Abteilung** – erscheint auf jedem Ausdruck
 - **Vorwarnzeit** – wie viele Tage vor der Fälligkeit eine Aufgabe als „Bald fällig“ angezeigt wird (Standard: 14 Tage)
+
+---
+
+# Instandhaltungs-Audit
+
+`Instandhaltungs-Audit.html` ist die digitale Fassung der Excel-Vorlage **Vorlage_Audit_Instandhaltung.xlsm**. Sie läuft wie der Wartungsplaner komplett lokal (Doppelklick, kein Internet nötig) und ist für Handy, Tablet und PC ausgelegt.
+
+| Bereich | Inhalt |
+|---|---|
+| **Übersicht** | Kennzahlen, Erfüllungsgrad im Verlauf, letztes Audit mit Auswertung je Kapitel, offene Maßnahmen, Maschinenpark nach Kritikalität A/B/C |
+| **Audits** | Vier Checklisten aus der Vorlage: *Instandhaltung allgemein* (39 Punkte, DE/EN), *Maschine* (13), *Werkzeuge* (10), *Kompakt-Audit Anlage · Werkzeuge · Ersatzteile* mit den Normfragen aus ISO/TS 16949 (21). Bewertung N.I.O / bed. OK / OK / n. b. wie in der Vorlage |
+| **Bericht** | Ergebnis, Diagramme, Maßnahmenplan, alle Prüfpunkte und Unterschriftsfelder – druckbar bzw. als PDF |
+| **Maßnahmen** | Alle Befunde mit N.I.O oder bed. OK, mit Verantwortlichem, Termin und Status (offen / überfällig / erledigt) |
+| **Maschinen** | Stammblatt mit den 28 Angaben aus „Checkliste_Maschine_Daten“; die drei ausgefüllten Maschinen aus der Vorlage sind bereits übernommen |
+| **Wissen** | DIN 31051, DIN EN 13306, DIN EN 15341, IATF 16949 8.5.1.5, BetrSichV, TRBS 1112, DGUV V3, AwSV, Strategien, Kennzahlen mit Rechner (MTBF, MTTR, Verfügbarkeit, OEE), Quellen |
+| **Daten** | Backup (.json) speichern/laden, Maßnahmen als CSV für Excel, Einstellungen (Firma, Gewichtung „bed. OK“, Ampelgrenzen) |
+
+**Erfüllungsgrad** = (OK + Gewicht × bed. OK) ÷ (N.I.O + bed. OK + OK). Die Vorlage enthält dafür keine Formel; Gewicht (Standard 50 %) und Ampelgrenzen (grün ab 85 %, gelb ab 60 %) sind deshalb einstellbar.

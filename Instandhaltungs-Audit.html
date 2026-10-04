@@ -1,0 +1,1452 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Instandhaltungs-Audit</title>
+<style>
+/* Layout: Arbeitswerkzeug wie der Wartungsplaner – dunkle Seitenleiste (Desktop) bzw. Tab-Leiste unten (Handy), Inhalt in Karten.
+   Farben: Ampel-Status (N.I.O / bed. OK / OK) ist semantisch und getrennt vom Blau-Akzent. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #f7f9fc;
+  --border: #dfe5ee;
+  --text: #0f172a;
+  --muted: #5b6678;
+  --primary: #1d4ed8;
+  --primary-hover: #1e40af;
+  --primary-soft: #dbe6fd;
+  --on-primary: #ffffff;
+  --nio: #c62f2f;
+  --nio-soft: #fde4e4;
+  --on-nio: #ffffff;
+  --bed: #b47400;
+  --bed-mark: #f0a812;
+  --bed-soft: #fdf1d6;
+  --ok: #0f7a2f;
+  --ok-mark: #13a13d;
+  --ok-soft: #dcf5e2;
+  --na: #8a94a6;
+  --na-soft: #eceff4;
+  --sidebar: #0f172a;
+  --sidebar-text: #c3cbd8;
+  --sidebar-active: #1d4ed8;
+  --grid: #e8edf3;
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --s4: #eda100;
+  --shadow: 0 1px 2px rgba(15,23,42,.05), 0 4px 14px rgba(15,23,42,.05);
+  --radius: 12px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1120; --surface: #111a2b; --surface-2: #172236; --border: #26334a;
+    --text: #e6eaf1; --muted: #9aa6b8; --primary: #4b8df5; --primary-hover: #74a7f8;
+    --primary-soft: #1c335f; --on-primary: #ffffff;
+    --nio: #f07070; --nio-soft: #4a1d22; --on-nio: #2a0b0b; --bed: #f2b83a; --bed-mark: #f2b83a; --bed-soft: #45340f;
+    --ok: #4fcf73; --ok-mark: #2fb457; --ok-soft: #173a24; --na: #8792a5; --na-soft: #222d40;
+    --sidebar: #050a16; --sidebar-text: #9aa6b8; --sidebar-active: #2a62d8; --grid: #223047;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1120; --surface: #111a2b; --surface-2: #172236; --border: #26334a;
+  --text: #e6eaf1; --muted: #9aa6b8; --primary: #4b8df5; --primary-hover: #74a7f8;
+  --primary-soft: #1c335f; --on-primary: #ffffff;
+  --nio: #f07070; --nio-soft: #4a1d22; --on-nio: #2a0b0b; --bed: #f2b83a; --bed-mark: #f2b83a; --bed-soft: #45340f;
+  --ok: #4fcf73; --ok-mark: #2fb457; --ok-soft: #173a24; --na: #8792a5; --na-soft: #222d40;
+  --sidebar: #050a16; --sidebar-text: #9aa6b8; --sidebar-active: #2a62d8; --grid: #223047;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+button, input, select, textarea { font: inherit; color: inherit; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.25; }
+h1 { font-size: 1.6rem; font-weight: 750; letter-spacing: -.01em; }
+h2 { font-size: 1.15rem; font-weight: 700; }
+h3 { font-size: 1rem; font-weight: 650; }
+p { margin: 0; }
+a { color: var(--primary); }
+.num, td.num, .tab { font-variant-numeric: tabular-nums; }
+svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.app { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100vh; }
+.side { background: var(--sidebar); color: var(--sidebar-text); padding: 18px 12px; display: flex; flex-direction: column; gap: 3px; position: sticky; top: 0; height: 100vh; }
+.brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 16px; padding: 4px 10px 18px; line-height: 1.2; }
+.brand small { display: block; font-weight: 500; font-size: 12px; color: var(--sidebar-text); }
+.brand-logo { width: 34px; height: 34px; border-radius: 9px; background: #1d4ed8; display: grid; place-items: center; flex: none; }
+.brand-logo svg { stroke: #fff; }
+.nav-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; background: transparent; border-radius: 8px; cursor: pointer; text-align: left; color: inherit; }
+.nav-btn:hover { background: rgba(255,255,255,.07); color: #fff; }
+.nav-btn.active { background: var(--sidebar-active); color: #fff; }
+.nav-badge { margin-left: auto; background: #d03b3b; color: #fff; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 7px; }
+.side-foot { margin-top: auto; padding: 10px; font-size: 12px; color: var(--sidebar-text); line-height: 1.4; }
+.tabbar { display: none; }
+
+.main { padding: 26px 30px 70px; min-width: 0; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+.page-head .sub { color: var(--muted); margin-top: 4px; }
+.eyebrow { font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.stack { display: flex; flex-direction: column; gap: 18px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.card-head .hint { color: var(--muted); font-size: 13px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 600; text-decoration: none; color: var(--text); min-height: 40px; }
+.btn:hover { border-color: var(--primary); }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.btn.primary:hover { background: var(--primary-hover); }
+.btn.danger { color: var(--nio); }
+.btn.danger.armed { background: var(--nio); color: #fff; border-color: var(--nio); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.tile { display: flex; flex-direction: column; gap: 4px; }
+.tile .val { font-size: 2rem; font-weight: 750; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tile .lbl { color: var(--muted); font-size: 13px; }
+
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; font-size: 12.5px; font-weight: 650; white-space: nowrap; background: var(--na-soft); color: var(--muted); }
+.chip.nio { background: var(--nio-soft); color: var(--nio); }
+.chip.bed { background: var(--bed-soft); color: var(--bed); }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.blue { background: var(--primary-soft); color: var(--primary); }
+.chip .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 650; background: var(--surface-2); }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: var(--surface-2); }
+
+label.f { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600; color: var(--muted); min-width: 0; }
+input[type=text], input[type=date], input[type=number], select, textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--text); font-weight: 400; min-height: 40px; }
+textarea { resize: vertical; min-height: 42px; line-height: 1.4; }
+input:disabled, textarea:disabled, select:disabled { background: var(--surface-2); }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+
+/* Checklisten-Typen */
+.types { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.type-card { text-align: left; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px; color: var(--text); }
+.type-card:hover { border-color: var(--primary); }
+.type-card.sel { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-soft); }
+.type-card .cnt { font-size: 1.5rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.type-card .src { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+
+/* Audit-Editor */
+.audit-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start; }
+.summary { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+.cat { padding: 0; overflow: hidden; }
+.cat-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 18px; background: var(--surface-2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.item { padding: 14px 18px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 12px; }
+.item:last-child { border-bottom: 0; }
+.item .nr { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 1px; }
+.item .q p.en { color: var(--muted); font-size: 13px; font-style: italic; margin-top: 3px; }
+.item .body { grid-column: 2; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; min-width: 0; }
+.item.r-nio { box-shadow: inset 4px 0 0 var(--nio); }
+.item.r-bed { box-shadow: inset 4px 0 0 var(--bed-mark); }
+.item.r-ok { box-shadow: inset 4px 0 0 var(--ok-mark); }
+.item.r-na { box-shadow: inset 4px 0 0 var(--na); }
+.rate { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; max-width: 520px; }
+.rate button { border: 1px solid var(--border); background: var(--surface); border-radius: 9px; padding: 8px 6px; min-height: 42px; cursor: pointer; font-weight: 650; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text); }
+.rate button:hover:not(:disabled) { border-color: var(--primary); }
+.rate button.on.nio { background: var(--nio); border-color: var(--nio); color: var(--on-nio); }
+.rate button.on.bed { background: var(--bed-mark); border-color: var(--bed-mark); color: #1f1600; }
+.rate button.on.ok { background: var(--ok-mark); border-color: var(--ok-mark); color: #fff; }
+.rate button.on.na { background: var(--na); border-color: var(--na); color: #fff; }
+.measure { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto; gap: 10px; align-items: end; padding: 10px; background: var(--surface-2); border-radius: 9px; border: 1px dashed var(--border); }
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; min-height: 40px; cursor: pointer; }
+.check input { width: 18px; height: 18px; }
+
+/* Diagramme */
+.hero-score { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hero-score .big { font-size: 3rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.stackbar { display: flex; gap: 2px; height: 16px; border-radius: 4px; overflow: hidden; background: var(--na-soft); margin: 12px 0 8px; }
+.stackbar > span { display: block; height: 100%; min-width: 0; }
+.stackbar .nio { background: var(--nio); } .stackbar .bed { background: var(--bed-mark); } .stackbar .ok { background: var(--ok-mark); } .stackbar .na { background: var(--na); } .stackbar .open { background: var(--border); }
+.legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.bars { display: flex; flex-direction: column; gap: 9px; }
+.bar-row { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) 52px; gap: 10px; align-items: center; font-size: 13.5px; }
+.bar-row .lab { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { height: 12px; border-radius: 4px; position: relative; background: linear-gradient(90deg, transparent calc(50% - 1px), var(--grid) calc(50% - 1px), var(--grid) 50%, transparent 50%), var(--surface-2); border: 1px solid var(--border); }
+.bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--primary); }
+.bar-fill.good { background: var(--ok-mark); } .bar-fill.warn { background: var(--bed-mark); } .bar-fill.crit { background: var(--nio); }
+.bar-row .v { white-space: nowrap; text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; }
+.axis-note { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) 52px; gap: 10px; font-size: 11.5px; color: var(--muted); }
+.axis-note div { display: flex; justify-content: space-between; }
+.summary .bar-row, .summary .axis-note { grid-template-columns: minmax(0, 1fr) 52px; gap: 4px 10px; }
+.summary .bar-row .lab { grid-column: 1 / -1; }
+.summary .axis-note > span:first-child { display: none; }
+svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+svg.chart text { fill: var(--muted); font-size: 11px; font-family: var(--font); }
+.tip { position: fixed; z-index: 50; pointer-events: none; background: var(--text); color: var(--bg); padding: 6px 9px; border-radius: 7px; font-size: 12.5px; max-width: 260px; box-shadow: var(--shadow); white-space: pre-line; }
+
+/* Maschinen */
+.mach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.mach { cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: 8px; color: var(--text); font: inherit; }
+.mach:hover { border-color: var(--primary); }
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 12px; font-size: 13.5px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; overflow-wrap: anywhere; }
+.crit { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; font-weight: 800; font-size: 13px; border: 2px solid currentColor; }
+.crit.A { color: var(--nio); } .crit.B { color: var(--bed); } .crit.C { color: var(--ok); } .crit.x { color: var(--na); }
+.field-row { display: grid; grid-template-columns: 34px minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 1.2fr); gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.field-row .n { color: var(--muted); font-weight: 700; padding-top: 9px; font-variant-numeric: tabular-nums; }
+.field-row .t { padding-top: 9px; font-weight: 600; }
+.field-row .t small { display: block; font-weight: 400; color: var(--muted); }
+
+/* Wissen */
+.prose { max-width: 70ch; display: flex; flex-direction: column; gap: 10px; }
+.din { display: grid; gap: 12px; }
+.din-root { justify-self: center; background: var(--primary); color: var(--on-primary); padding: 10px 18px; border-radius: 10px; font-weight: 700; text-align: center; }
+.din-kids { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; position: relative; padding-top: 16px; }
+.din-kids::before { content: ""; position: absolute; top: 0; left: 12.5%; right: 12.5%; height: 2px; background: var(--border); }
+.din-kid { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: var(--surface-2); position: relative; }
+.din-kid::before { content: ""; position: absolute; top: -17px; left: 50%; width: 2px; height: 16px; background: var(--border); }
+.din-kid h3 { margin-bottom: 4px; }
+.din-kid .tag { font-size: 12px; color: var(--primary); font-weight: 650; }
+.formula { font-family: var(--mono); font-size: 13px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; padding: 4px 8px; display: inline-block; }
+.calc-out { font-size: 1.6rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.note { border-left: 4px solid var(--bed-mark); background: var(--bed-soft); padding: 10px 14px; border-radius: 0 9px 9px 0; font-size: 14px; }
+.note.info { border-left-color: var(--primary); background: var(--primary-soft); }
+.sources li { margin-bottom: 4px; overflow-wrap: anywhere; }
+
+.empty { text-align: center; padding: 30px 16px; color: var(--muted); display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filters button { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 6px 13px; cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--text); }
+.filters button.on { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 9px; font-weight: 600; z-index: 60; box-shadow: var(--shadow); max-width: calc(100vw - 32px); }
+.ro-banner { background: var(--primary-soft); color: var(--text); border-radius: 9px; padding: 9px 14px; font-size: 14px; }
+.sig { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px; margin-top: 30px; }
+.sig div { border-top: 1px solid var(--text); padding-top: 6px; font-size: 13px; color: var(--muted); }
+.print-only { display: none; }
+
+@media (max-width: 1100px) {
+  .audit-layout { grid-template-columns: minmax(0, 1fr); }
+  .summary { position: static; }
+  .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .side { display: none; }
+  .main { padding: 18px 16px calc(env(safe-area-inset-bottom, 0px) + 96px); }
+  .tabbar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--sidebar); padding: 6px 4px calc(env(safe-area-inset-bottom, 0px) + 6px); }
+  .tabbar button { border: 0; background: transparent; color: var(--sidebar-text); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; padding: 6px 2px; border-radius: 8px; cursor: pointer; position: relative; }
+  .tabbar button.active { color: #fff; background: rgba(255,255,255,.1); }
+  .tabbar .nav-badge { position: absolute; top: 1px; right: 18%; padding: 0 5px; font-size: 10px; }
+  .grid2, .grid3 { grid-template-columns: minmax(0, 1fr); }
+  .din-kids { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-top: 0; }
+  .din-kids::before, .din-kid::before { display: none; }
+  .field-row { grid-template-columns: 30px minmax(0, 1fr); }
+  .field-row .t { padding-top: 9px; }
+  .field-row > :nth-child(3), .field-row > :nth-child(4) { grid-column: 2; }
+  .measure { grid-template-columns: minmax(0, 1fr); }
+  .bar-row, .axis-note { grid-template-columns: minmax(0, 110px) minmax(0, 1fr) 46px; }
+  h1 { font-size: 1.35rem; }
+}
+@media (max-width: 460px) {
+  .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .item { grid-template-columns: 34px minmax(0, 1fr); padding: 12px 14px; }
+  .rate button { font-size: 12.5px; padding: 8px 2px; }
+  .rate button > span { display: none; }
+  .item .body { grid-column: 1 / -1; }
+  .card { padding: 14px; }
+}
+@media print {
+  .side, .tabbar, .no-print, .toast { display: none !important; }
+  .print-only { display: block; }
+  .app { display: block; }
+  .main { padding: 0; }
+  body { background: #fff; color: #000; font-size: 12px; }
+  .card { box-shadow: none; break-inside: avoid; }
+  tr { break-inside: avoid; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="app">
+  <nav class="side" id="side" aria-label="Hauptnavigation"></nav>
+  <main class="main" id="main"><p class="muted">Lade Audit-Mappe …</p></main>
+</div>
+<nav class="tabbar" id="tabbar" aria-label="Navigation"></nav>
+<div class="tip" id="tip" hidden></div>
+<div class="toast" id="toast" hidden></div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+
+<script>
+"use strict";
+/* ============================================================
+   Checklisten – Inhalte 1:1 aus „Vorlage_Audit_Instandhaltung.xlsm“
+   (Rechtschreibfehler der Vorlage korrigiert, Inhalt unverändert).
+   Die Gruppierung in Kapitel dient nur der Auswertung.
+   ============================================================ */
+const CHECKLISTS = {
+  allg: {
+    name: "Instandhaltung allgemein", short: "Allgemein", sheet: "Auditcheckliste_allg",
+    desc: "System-Audit der Instandhaltungsorganisation einer Abteilung (39 Prüfpunkte, Deutsch/Englisch).",
+    objLabel: "Abteilung / Bereich", rateLabel: "Zustand",
+    cats: [
+      { id: "A", name: "Organisation & Personal", items: [
+        ["g1", "1", "Existiert eine Verfahrensanweisung für das Instandhaltungssystem (aktuell / wird sie gelebt)?", "Is there a procedure for the maintenance system? (Is it currently being followed/implemented?)"],
+        ["g2", "2", "Existiert eine Arbeitsanweisung für die vorbeugende Instandhaltung (aktuell / wird sie gelebt)?", "Is there a work instruction for preventive maintenance? (Is it currently being implemented/is it being followed?)"],
+        ["g3", "3", "Existiert eine Qualifikationsmatrix / Vertretungsregelung / Struktur der IH?", "Does a qualification matrix / substitution arrangement / structure of the IH exist?"],
+        ["g4", "4", "Existiert eine Schichtregelung? Ist die technische Betreuung der Anlage gewährleistet?", "Is there a shift system in place? Is technical support for the plant guaranteed?"],
+        ["g5", "5", "Führungskräfteanzahl in der IH", ""],
+        ["g6", "6", "Existiert eine Kapazitäts- und Terminplanung der MA (T/W/M/J)?", ""],
+        ["g7", "7", "Flexibilität und Qualifikation der MA innerhalb der Fertigungsbereiche", ""]
+      ]},
+      { id: "B", name: "Strategie & IH-System", items: [
+        ["g8", "8", "Anwendung von Instandhaltungsstrategien (welche Instandhaltungsstrategie?)", "Application of maintenance strategies (which maintenance strategy)"],
+        ["g9", "9", "Welches IH-System steht zur Verfügung (Wartung, Inspektion, geplante/ungeplante Reparatur) und wird es genutzt?", "Which maintenance system is available (maintenance; inspection; planned/unplanned repairs) and is it being used?"],
+        ["g10", "10", "Existiert eine vorbeugende Instandhaltung?", "Preventive maintenance exists"],
+        ["g11", "11", "Qualität planmäßige Wartung (Intervalle, Arbeitspläne, Arbeitsabläufe)", "Quality of scheduled maintenance (intervals; work plans; work processes)"],
+        ["g12", "12", "Qualität planmäßige Inspektion (Intervalle, Arbeitspläne, Arbeitsabläufe)", "Quality of scheduled inspections (intervals; work plans; work procedures)"],
+        ["g13", "13", "Qualität planmäßig vorbeugende Instandsetzung (Intervalle, Arbeitspläne, Arbeitsabläufe)", "Quality of scheduled preventive maintenance (intervals; work plans; workflows)"],
+        ["g14", "14", "Qualität störungsbedingte, bedarfsweise Instandsetzung / Einsatzbereitschaft (Arbeitspläne, Reaktionsvermögen bei Störungen)", "Quality of breakdown-based and demand-based maintenance / operational readiness (work plans; responsiveness to malfunctions)"],
+        ["g15", "15", "Wird Outsourcing (Fremdauftragsvergabe) für Wartung, Inspektion und geplante Instandsetzung praktiziert?", "Is outsourcing (contracting) practiced for maintenance, inspection, and planned repairs?"]
+      ]},
+      { id: "C", name: "Durchführung & Schulung", items: [
+        ["g16", "16", "Sind MA für präventive Instandhaltung (PM) geschult worden?", "Have employees been trained in preventive maintenance (PM)?"],
+        ["g17", "17", "Werden Betriebsstoffe für PM bereitgestellt?", "Are operating materials provided for PM?"],
+        ["g18", "18", "Werden Wartungen sachgemäß durchgeführt? Sichtkontrolle? Erledigte/unerledigte Aufträge?", "Is maintenance being carried out properly? Visual inspection? Completed/uncompleted tasks?"],
+        ["g19", "19", "Wie werden Werkzeuge gewartet? In welchem Zustand?", "How are tools maintained? In what condition?"]
+      ]},
+      { id: "D", name: "Auswertung & Verbesserung", items: [
+        ["g20", "20", "Werden Wartungsmängel ausgewertet?", "Are maintenance deficiencies evaluated?"],
+        ["g21", "21", "Kontinuierliche Optimierung der Wartungs-/Inspektionspläne?", "Continuous optimization of maintenance/inspection plans?"],
+        ["g22", "22", "Schadensregistrierung (Änderung durch konstruktives Beseitigen von Störquellen)", ""],
+        ["g23", "23", "Schadensanalysen und Durchführung", "Damage analysis and implementation"],
+        ["g24", "24", "Technische Verfügbarkeit der Maschinen als Maß für die IH <> 90 %", "Technical availability of machines as a measure of IH <> 80 %"]
+      ]},
+      { id: "E", name: "Dokumentation & Kommunikation", items: [
+        ["g25", "25", "Verwaltung der technischen Dokumentation (Stücklisten, Maschinenbeschreibung, technische Zeichnungen)", "Management of technical documentation (parts lists; machine descriptions; technical drawings)"],
+        ["g26", "26", "Findet eine Absprache zwischen Instandhaltung und Produktion statt?", "Is there coordination between maintenance and production?"],
+        ["g27", "27", "Wie gelangen Informationen an die Instandhalter / Anlagenführer?", ""],
+        ["g28", "28", "Wie ist die Bereitschaft der Instandhalter zu Weiterbildungsmaßnahmen?", ""]
+      ]},
+      { id: "F", name: "Werkstatt & Betriebsmittel", items: [
+        ["g29", "29", "Wie sieht die Werkstattausstattung aus und wie ist deren Qualität?", "What does the workshop equipment look like and what is its quality?"],
+        ["g30", "30", "Gibt es Betriebsmittel für Instandsetzung, PM und Generalüberholung?", "Are there resources available for repair, preventive maintenance (PM), and major overhauls?"]
+      ]},
+      { id: "G", name: "Material & Ersatzteile", items: [
+        ["g31", "31", "Wie wird die Materialplanung (Ersatzteile, Betriebs- und Hilfsstoffe) durchgeführt (Stücklisten, Programme, Disposition)?", "How is material planning (spare parts, operating and auxiliary materials) carried out (bills of materials; programs; scheduling)?"],
+        ["g32", "32", "Ersatzteile Anlagen", "Spare parts machines"],
+        ["g33", "33", "Ersatzteile Werkzeuge", "Spare parts tools"],
+        ["g34", "34", "Betriebs- und Hilfsstoffe", "Operating and auxiliary materials"],
+        ["g35", "35", "Qualität der Ersatzteillager / Ordnung", "Quality of spare parts storage / organization"],
+        ["g36", "36", "Qualität der Ersatzteillager / Sicherheitsbestände", "Quality of spare parts inventory / safety stocks"]
+      ]},
+      { id: "H", name: "Kennzahlen", items: [
+        ["g37", "37", "Gibt es Instandhaltungs-Kennzahlen?", "Are there maintenance indicators?"],
+        ["g38", "38", "Nutzung von Kennzahlen", "KPI"]
+      ]},
+      { id: "I", name: "Arbeits- & Umweltschutz", items: [
+        ["g39", "39", "Arbeits- und Umweltschutz und technische Sicherheit", "Occupational safety, environmental protection and technical safety"]
+      ]}
+    ]
+  },
+  maschine: {
+    name: "Maschine", short: "Maschine", sheet: "Auditcheckliste_Maschine",
+    desc: "Audit einer einzelnen Anlage: Zustand, vorbeugende IH, Technik, Rüsten und Störungen (13 Prüfpunkte).",
+    objLabel: "Maschinenbezeichnung", rateLabel: "M.Z. (Maschinenzustand)",
+    cats: [
+      { id: "A", name: "Zustand", items: [
+        ["m1", "1", "Allgemeiner Zustand der Maschine (Sauberkeit, Umgebung, Bezeichnung?)", ""]
+      ]},
+      { id: "B", name: "Vorbeugende Instandhaltung", items: [
+        ["m2", "2", "Existiert eine vorbeugende Instandhaltung (aktuell / wird sie gelebt und optimiert?)", ""],
+        ["m2_1", "2.1", "Gibt es Schmierpläne für diese Maschine?", ""],
+        ["m2_2", "2.2", "Sind die Schmierarbeiten gemäß den vorgegebenen Schmierintervallen durchgeführt?", ""],
+        ["m2_3", "2.3", "Gibt es Nachweise über die wöchentlich, monatlich, … durchgeführten Wartungs- und Inspektionsarbeiten?", ""],
+        ["m2_4", "2.4", "Verwaltung der technischen Dokumentation (Stücklisten, Maschinenbeschreibung, technische Zeichnungen)?", ""]
+      ]},
+      { id: "C", name: "Funktion & Zustand der Technik", items: [
+        ["m2_5", "2.5", "Funktion und Zustand der Mechanik (bezogen auf durchgeführte Inspektion, siehe Checkliste)", ""],
+        ["m2_6", "2.6", "Funktion und Zustand der Hydraulik (bezogen auf durchgeführte Inspektion, siehe Checkliste)", ""],
+        ["m2_7", "2.7", "Funktion und Zustand der Pneumatik (bezogen auf durchgeführte Inspektion, siehe Checkliste)", ""],
+        ["m2_8", "2.8", "Funktion und Zustand der Elektrik (bezogen auf durchgeführte Inspektion, siehe Checkliste)", ""]
+      ]},
+      { id: "D", name: "Rüsten & Störungen", items: [
+        ["m3", "3", "Gibt es eine definierte Vorgehensweise beim Rüsten (Qualifikationsmatrix)?", ""],
+        ["m4", "4", "Vorgehensweise bei ungeplanten Störungen (Schwachstellenanalyse)", ""],
+        ["m4_1", "4.1", "Ist ein Ablauf / Maßnahmenplan / Qualifikation der Mitarbeiter für schnelle Reparatur beschrieben?", ""]
+      ]}
+    ]
+  },
+  werkzeug: {
+    name: "Werkzeuge", short: "Werkzeug", sheet: "Auditcheckliste_Werkzeuge",
+    desc: "Audit eines Werkzeugs: Zustand, Ersatzteile, Wartungsanweisungen, Dokumentation, Verschleißkriterien (10 Prüfpunkte).",
+    objLabel: "Werkzeug", rateLabel: "WKZ (Werkzeugzustand)",
+    cats: [
+      { id: "A", name: "Zustand", items: [
+        ["w1", "1", "Allgemeiner Zustand der Werkzeuge", ""],
+        ["w1_1", "1.1", "Sauberkeit", ""],
+        ["w1_2", "1.2", "Lagerung", ""],
+        ["w1_3", "1.3", "Schmierung", ""]
+      ]},
+      { id: "B", name: "Ersatzteile", items: [
+        ["w2", "2", "Ersatzteile für oben genanntes Werkzeug", ""]
+      ]},
+      { id: "C", name: "Inspektion & Wartung", items: [
+        ["w3", "3", "Gibt es Anweisungen für Inspektion und Wartung der Werkzeuge?", ""],
+        ["w3_1", "3.1", "Funktion und Zustand der Werkzeuge (bezogen auf durchgeführte Inspektion, siehe Checkliste)", ""]
+      ]},
+      { id: "D", name: "Dokumentation", items: [
+        ["w4", "4", "Verwaltung der technischen Dokumentation (Stücklisten, Werkzeugbeschreibung, technische Zeichnungen)?", ""]
+      ]},
+      { id: "E", name: "Verschleiß & Instandsetzung", items: [
+        ["w5", "5", "Nach welchen Kriterien entscheidet Instandhalter/Meister, dass ein Werkzeug verschleißbedingt überholt werden muss? Sind diese Kriterien schriftlich festgelegt, und wo?", ""],
+        ["w5_1", "5.1", "Vorgehensweise bei Nacharbeit und Instandsetzung der Werkzeuge", ""]
+      ]}
+    ]
+  },
+  kompakt: {
+    name: "Kompakt-Audit Anlage · Werkzeuge · Ersatzteile", short: "Kompakt", sheet: "Auditcheckliste_1",
+    desc: "Schnellcheck mit Normfragen aus ISO/TS 16949:2009 (heute IATF 16949) zu vorbeugender Instandhaltung und Ordnung (21 Prüfpunkte).",
+    objLabel: "Maschinenbezeichnung", rateLabel: "Zustand",
+    cats: [
+      { id: "A", name: "Anlage", items: [
+        ["k1", "A1", "Allgemeiner Zustand der Maschine (Sauberkeit, Umgebung)", ""],
+        ["k2", "A2", "Existiert eine vorbeugende Instandhaltung (aktuell / wird sie gelebt)?", ""],
+        ["k3", "A3", "Gibt es Schmierpläne in der Nähe der Maschinen?", ""],
+        ["k4", "A4", "Gibt es Nachweise über die wöchentlich, monatlich, … durchgeführten Wartungs- und Inspektionsarbeiten?", ""],
+        ["k5", "A5", "Sind die Schmierarbeiten gemäß den vorgegebenen Schmierintervallen durchgeführt?", ""],
+        ["k6", "A6", "Wie werden ungeplante Reparaturen durchgeführt? Werden Betriebsmittel dafür bereitgestellt?", ""],
+        ["k7", "A7", "Sicherheitseinrichtungen an der Anlage?", ""],
+        ["k8", "A8", "Werden die Instandhalter geschult?", ""],
+        ["k9", "A9", "Technische Dokumente (System, Stücklisten, technische Zeichnungen)", ""],
+        ["k10", "A10", "Werden die Anlagen bereitgestellt?", ""],
+        ["k11", "A11", "Betreuung", ""]
+      ]},
+      { id: "N", name: "Normanforderungen (ISO/TS 16949)", items: [
+        ["n1", "N1", "Ermittelt die Organisation die für Schlüsselprozesse notwendigen Anlagen, stellt sie Ressourcen für die Instandhaltung der Maschinen und Betriebsmittel bereit und baut sie ein wirksames, geplantes, vorbeugendes Instandhaltungssystem auf?", "ISO/TS 16949:2009, 7.5.1.4"],
+        ["n2a", "N2a", "Umfasst das vorbeugende Instandhaltungssystem geplante Instandhaltungstätigkeiten?", "ISO/TS 16949:2009, 7.5.1.4"],
+        ["n2b", "N2b", "… Verpackung und Konservierung von Betriebsmitteln, Werkzeugen und Prüfmitteln?", "ISO/TS 16949:2009, 7.5.1.4"],
+        ["n2c", "N2c", "… Verfügbarkeit von Ersatzteilen für Produktionseinrichtungen von Schlüsselprozessen?", "ISO/TS 16949:2009, 7.5.1.4"],
+        ["n2d", "N2d", "… Dokumentation, Bewertung und Weiterentwicklung der Instandhaltungsziele?", "ISO/TS 16949:2009, 7.5.1.4"],
+        ["n3", "N3", "Hält die Organisation ihre Betriebsstätten in einem ordentlichen, sauberen Zustand und sorgt sie für deren Instandhaltung im Einklang mit den Erfordernissen des Produkts?", "ISO/TS 16949:2009, 6.4.2"]
+      ]},
+      { id: "W", name: "Werkzeuge & Ersatzteile", items: [
+        ["k12", "W1", "Allgemeiner Zustand der Werkzeuge (Sauberkeit, Umgebung)", ""],
+        ["k13", "W2", "Technische Dokumente Werkzeuge (System, Stücklisten, technische Zeichnungen)", ""],
+        ["k14", "W3", "Nach welchen Kriterien entscheidet Instandhalter/Meister, dass ein Werkzeug verschleißbedingt überholt werden muss?", ""],
+        ["k15", "W4", "Gibt es ein Werkzeugmanagement? Werkzeugmappen?", ""],
+        ["k16", "E1", "Allgemeiner Zustand der Ersatzteile (Sauberkeit, Umgebung)", ""],
+        ["k17", "E2", "Existieren flächendeckend Ersatzteillisten für eigen- und fremdgefertigte Maschinen?", ""],
+        ["k18", "E3", "Technische Dokumente Ersatzteile (System, Stücklisten, technische Zeichnungen)", ""]
+      ]}
+    ]
+  }
+};
+const TYPE_ORDER = ["allg", "maschine", "werkzeug", "kompakt"];
+const TYPE_COLOR = { allg: "var(--s1)", maschine: "var(--s2)", werkzeug: "var(--s3)", kompakt: "var(--s4)" };
+const RATINGS = [
+  { v: "nio", label: "N.I.O", long: "nicht in Ordnung", icon: "✕" },
+  { v: "bed", label: "bed. OK", long: "bedingt OK", icon: "!" },
+  { v: "ok", label: "OK", long: "in Ordnung", icon: "✓" },
+  { v: "na", label: "n. b.", long: "nicht bewertet / nicht zutreffend", icon: "–" }
+];
+
+/* Maschinen-Stammblatt – Felder aus „Checkliste_Maschine_Daten“ */
+const MFIELDS = [
+  ["f1", "Anlagennummer", ""], ["f2", "Inventarnummer", ""], ["f3", "Hersteller", ""], ["f4", "Typ", ""],
+  ["f5", "Seriennummer", ""], ["f6", "Baujahr", ""], ["f7", "Prozess", ""], ["f8", "Gewicht", ""],
+  ["f9", "Länge / Breite / Höhe", ""], ["f10", "Werkzeuge vorhanden?", ""],
+  ["f11", "Maschinen-/Prozessbesonderheiten / Grenzen", "z. B. Temperatur, Druck bis 500 bar, Materialdicke, Produktlänge"],
+  ["f12", "Zustand der Anlage", ""], ["f13", "Automatisierungsgrad", ""], ["f14", "CE-Kennzeichnung", ""],
+  ["f15", "Technische Dokumentation vorhanden?", "Digital / Papier"], ["f16", "Ersatzteile vorhanden", ""],
+  ["f17", "Kritische Maschine [A / B / C]", "A, B oder C"], ["f18", "Verfügbarkeit Ersatzmaschine", ""],
+  ["f19", "Absaugung (Ist-Zustand)", ""], ["f20", "Netzwerkanschluss erforderlich", ""], ["f21", "Druckluft erforderlich", ""],
+  ["f22", "Gase", "CO2 / N2 / He / ArH 90/10 / ArH 80/20 / Argon 4.6 / H2 / C2H2 (Acetylen) / Sagox 2K (Argon-CO2-Gemisch)"],
+  ["f23", "Kühlwasser", "Wasserart / Abwasser / Entsorgung"], ["f24", "Frischwasser", ""], ["f25", "Hydraulik", ""],
+  ["f26", "Wassergefährdungsklasse (WGK)", "Gesamtvolumen in der Anlage [m³] / Rückhaltevolumen [m³]"],
+  ["f27", "Nennleistung [kW]", "Vorsicherung [A], Spannung [V], Anschlussart (z. B. direkt, CEE-Stecker 16 A)"],
+  ["f28", "Umgebung", "Raumklimatisierung / Temp., Bekranung + Hebelast [t], Boden-/Fundamentanforderungen, Schallemission [dB], Zugangsbeschränkung / Zugänglichkeit"]
+];
+/* Die drei ausgefüllten Maschinenblätter + die benannte Anlage aus der Vorlage */
+const TEMPLATE_MACHINES = [
+  { id: "m-4977", name: "Positionneuer (Rundschweißtisch)", equip: "", source: "Checkliste_Maschine_Schweiß_dre", fields: {
+    f1: { v: "4977" }, f2: { v: "207-16.PS7" }, f4: { v: "S464" }, f7: { v: "Rundschweißen / Rundschweißtisch" },
+    f8: { v: "250 kg" }, f9: { v: "1 x 0,7 x 1,8" }, f12: { v: "70–90 %" }, f13: { v: "manuell / Schweißen" },
+    f14: { v: "ja" }, f15: { v: "ja" }, f16: { v: "–" }, f17: { v: "B" }, f19: { v: "ja / D = 80 mm" }, f20: { v: "–" },
+    f21: { v: "optional / empfohlen" }, f22: { v: "Argon" }, f23: { v: "–" }, f24: { v: "–" }, f25: { v: "–" },
+    f26: { v: "Eher bei Reinigungsstoffen, die beim Schweißen verwendet werden" }, f27: { v: "0,6 kW / Anschluss 16 A" }, f28: { v: "–" } } },
+  { id: "m-marqueuse", name: "Marqueuse Laser (Laserbeschriftung)", equip: "", source: "Checkliste_Maschine_div", fields: {
+    f2: { v: "206-16.M3" }, f3: { v: "SIC" }, f4: { v: "XL-Box 4" }, f7: { v: "Prüfen" }, f8: { v: "250 kg" },
+    f9: { v: "1,9 x 0,7 x 2,2" }, f12: { v: "70–90 %" }, f13: { v: "manuell" }, f14: { v: "ja" }, f16: { v: "–" },
+    f17: { v: "A" }, f20: { v: "ja" }, f21: { v: "ja" }, f23: { v: "–" }, f24: { v: "–" }, f25: { v: "–" }, f28: { v: "–" } } },
+  { id: "m-dichtheit", name: "Détecteur de fuite (Dichtheitsprüfgerät)", equip: "293", source: "Checkliste_Maschine_Schweiß (2)", fields: {
+    f2: { v: "XXX", n: "Equipment-Nr.: 293" }, f3: { v: "Oerlikon Leybold" }, f4: { v: "Phoenixl 300 Modul", n: "Serie 32" },
+    f5: { v: "90001232041" }, f8: { v: "150 kg" }, f9: { v: "0,8 x 0,8 x 1,2" }, f12: { v: "70–90 %" },
+    f13: { v: "Halbautomatik" }, f14: { v: "ja" }, f16: { v: "–" }, f17: { v: "A" }, f20: { v: "–" },
+    f21: { v: "optional / empfohlen" }, f22: { v: "Helium" }, f23: { v: "–" }, f24: { v: "–" }, f25: { v: "–" },
+    f27: { v: "0,4 kW / 400 V / 16 A" }, f28: { v: "–" } } },
+  { id: "m-orbital", name: "Orbital Welding Frames x5", equip: "", source: "Checkliste_Maschine_Daten", fields: {} }
+];
+const DEFAULT_SETTINGS = { company: "", bedWeight: 50, green: 85, yellow: 60 };
+
+/* ============================================================
+   Zustand & Speicher
+   – im claude.ai-Link: gemeinsame Datenbank (gleiche Daten auf jedem Gerät)
+   – als lokale Datei: Browser-Speicher dieses Geräts
+   ============================================================ */
+const S = {
+  audits: {}, machines: {}, settings: { ...DEFAULT_SETTINGS },
+  view: "home", auditId: null, machineId: null, newType: "allg", newFor: null,
+  actFilter: "offen", showEn: false, confirm: null, importData: null,
+  mode: "local", ready: false, readOnly: false
+};
+let DB = null;
+const LS_KEY = "ih-audit-v1";
+const LS_UI = "ih-audit-ui";
+const framed = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+const canPrint = !framed;
+
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+function loadLocal() {
+  const raw = lsGet(LS_KEY);
+  if (!raw) {
+    TEMPLATE_MACHINES.forEach(m => S.machines[m.id] = clone(m));
+    saveLocal();
+    return;
+  }
+  try {
+    const d = JSON.parse(raw);
+    (d.audits || []).forEach(a => S.audits[a.id] = a);
+    (d.machines || []).forEach(m => S.machines[m.id] = m);
+    S.settings = { ...DEFAULT_SETTINGS, ...(d.settings || {}) };
+  } catch (e) {}
+}
+function saveLocal() {
+  lsSet(LS_KEY, JSON.stringify({ audits: Object.values(S.audits), machines: Object.values(S.machines), settings: S.settings }));
+}
+
+const dirty = new Set();
+const chains = {};
+const timers = {};
+const seq = {};
+function persist(coll, obj, delay) {
+  obj.updated = new Date().toISOString();
+  if (S.mode === "local") {
+    clearTimeout(timers.local);
+    timers.local = setTimeout(saveLocal, delay ? 300 : 0);
+    return;
+  }
+  const key = coll + "/" + obj.id;
+  dirty.add(key);
+  const n = seq[key] = (seq[key] || 0) + 1;
+  clearTimeout(timers[key]);
+  timers[key] = setTimeout(() => {
+    const body = clone(obj);
+    chains[key] = (chains[key] || Promise.resolve()).then(() => DB.collection(coll).doc(obj.id).set(body))
+      .then(() => { if (seq[key] === n) dirty.delete(key); })
+      .catch(err => { dirty.delete(key); writeFailed(err); });
+  }, delay ? 700 : 0);
+}
+function removeDoc(coll, id) {
+  if (S.mode === "local") { saveLocal(); return; }
+  const key = coll + "/" + id;
+  clearTimeout(timers[key]);
+  chains[key] = (chains[key] || Promise.resolve()).then(() => DB.collection(coll).doc(id).delete()).catch(writeFailed);
+}
+function saveSettings() {
+  if (S.mode === "local") { saveLocal(); return; }
+  DB.doc("settings/main").set(clone(S.settings)).catch(writeFailed);
+}
+function writeFailed(err) {
+  const code = err && err.code;
+  if (code === "invalid_argument") { S.readOnly = true; toast("Nur Lesezugriff – Änderungen werden nicht gespeichert."); render(); }
+  else if (code === "quota_exceeded") toast("Speicher voll – bitte alte Audits exportieren und löschen.");
+  else toast("Speichern fehlgeschlagen. Bitte Verbindung prüfen.");
+}
+
+async function initDb() {
+  if (!window.claude || typeof window.claude.use !== "function") return false;
+  let db = null, user = null;
+  try { [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]); } catch (e) { return false; }
+  if (!db) return false;
+  DB = db; S.mode = "db";
+  if (user) {
+    try { const c = await user.can("data.write"); if (c === false) S.readOnly = true; } catch (e) {}
+  }
+  let got = { a: false, m: false, s: false };
+  const done = () => { if (got.a && got.m && got.s && !S.ready) { S.ready = true; render(); } else if (S.ready) requestRender(); };
+  DB.collection("audits").onSnapshot(snap => {
+    const next = {};
+    snap.docs.forEach(d => { next[d.id] = dirty.has("audits/" + d.id) && S.audits[d.id] ? S.audits[d.id] : clone(d.data()); });
+    Object.keys(S.audits).forEach(id => { if (dirty.has("audits/" + id) && !next[id]) next[id] = S.audits[id]; });
+    S.audits = next; got.a = true; done();
+  }, () => {});
+  DB.collection("machines").onSnapshot(snap => {
+    const next = {};
+    snap.docs.forEach(d => { next[d.id] = dirty.has("machines/" + d.id) && S.machines[d.id] ? S.machines[d.id] : clone(d.data()); });
+    Object.keys(S.machines).forEach(id => { if (dirty.has("machines/" + id) && !next[id]) next[id] = S.machines[id]; });
+    S.machines = next; got.m = true; done();
+  }, () => {});
+  DB.doc("settings/main").onSnapshot(d => {
+    S.settings = { ...DEFAULT_SETTINGS, ...(d.exists ? d.data() : {}) }; got.s = true; done();
+  }, () => {});
+  return true;
+}
+
+let pendingRender = false;
+function requestRender() {
+  const a = document.activeElement;
+  if (a && a.closest && a.closest("#main") && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) { pendingRender = true; return; }
+  render();
+}
+document.addEventListener("focusout", () => { if (pendingRender) { pendingRender = false; setTimeout(requestRender, 50); } });
+
+/* ============================================================
+   Hilfsfunktionen
+   ============================================================ */
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function h(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function uid(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function todayISO() { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+function fmtDate(iso) { if (!iso) return "–"; const [y, m, d] = iso.slice(0, 10).split("-"); return d + "." + m + "." + y; }
+function pctTxt(p) { return p == null ? "–" : Math.round(p) + " %"; }
+function items(type) { return CHECKLISTS[type].cats.flatMap(c => c.items.map(it => ({ id: it[0], nr: it[1], de: it[2], en: it[3], cat: c.id, catName: c.name }))); }
+function itemById(type, id) { return items(type).find(i => i.id === id); }
+
+function score(audit, filterCat) {
+  const w = (Number(S.settings.bedWeight) || 0) / 100;
+  const r = { nio: 0, bed: 0, ok: 0, na: 0, open: 0, total: 0, pct: null };
+  items(audit.type).forEach(it => {
+    if (filterCat && it.cat !== filterCat) return;
+    r.total++;
+    const v = audit.answers && audit.answers[it.id] && audit.answers[it.id].r;
+    if (v && r[v] != null) r[v]++; else r.open++;
+  });
+  const rated = r.nio + r.bed + r.ok;
+  if (rated) r.pct = (r.ok + w * r.bed) / rated * 100;
+  return r;
+}
+function level(p) {
+  if (p == null) return "";
+  if (p >= Number(S.settings.green)) return "good";
+  if (p >= Number(S.settings.yellow)) return "warn";
+  return "crit";
+}
+function levelChip(p, noPct) {
+  const l = level(p);
+  if (!l) return '<span class="chip">nicht bewertet</span>';
+  const m = { good: ["ok", "✓", "gut"], warn: ["bed", "!", "mittel"], crit: ["nio", "✕", "kritisch"] }[l];
+  return `<span class="chip ${m[0]}">${m[1]} ${noPct ? "" : pctTxt(p) + " · "}${m[2]}</span>`;
+}
+function auditsSorted() { return Object.values(S.audits).sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.created || "").localeCompare(a.created || "")); }
+function machinesSorted() { return Object.values(S.machines).sort((a, b) => (a.name || "").localeCompare(b.name || "", "de")); }
+function auditTitle(a) { return a.title || (a.objectId && S.machines[a.objectId] && S.machines[a.objectId].name) || CHECKLISTS[a.type].name; }
+function critOf(m) { const v = ((m.fields && m.fields.f17 && m.fields.f17.v) || "").trim().toUpperCase(); return ["A", "B", "C"].includes(v[0]) ? v[0] : ""; }
+
+function actions() {
+  const out = [], today = todayISO();
+  Object.values(S.audits).forEach(a => {
+    if (!CHECKLISTS[a.type]) return;
+    items(a.type).forEach(it => {
+      const x = a.answers && a.answers[it.id];
+      if (!x || (x.r !== "nio" && x.r !== "bed")) return;
+      const st = x.done ? "erledigt" : (x.due && x.due < today ? "ueberfaellig" : "offen");
+      out.push({ audit: a, item: it, ans: x, status: st });
+    });
+  });
+  return out.sort((p, q) => (p.status === "erledigt") - (q.status === "erledigt") || (p.ans.due || "9999").localeCompare(q.ans.due || "9999"));
+}
+
+const ICONS = {
+  home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+  audit: '<path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M9 12l2 2 4-4"/>',
+  actions: '<path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/>',
+  machines: '<rect x="3" y="8" width="18" height="11" rx="2"/><path d="M7 8V5h4v3M15 13h2M7 13h4"/>',
+  wissen: '<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/>',
+  daten: '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  back: '<path d="M15 18l-6-6 6-6"/>',
+  print: '<path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v7H7z"/>',
+  doc: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  wrench: '<path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>'
+};
+function ic(n) { return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`; }
+
+/* ============================================================
+   Navigation
+   ============================================================ */
+const NAV = [
+  ["home", "Übersicht", "home"], ["audits", "Audits", "audit"], ["actions", "Maßnahmen", "actions"],
+  ["machines", "Maschinen", "machines"], ["wissen", "Wissen", "wissen"], ["daten", "Daten", "daten"]
+];
+function navActive(v) {
+  if (v === "audit" || v === "report" || v === "new") return "audits";
+  if (v === "machine") return "machines";
+  return v;
+}
+function renderNav() {
+  const open = actions().filter(a => a.status === "ueberfaellig").length;
+  const act = navActive(S.view);
+  document.getElementById("side").innerHTML = `
+    <div class="brand"><div class="brand-logo">${ic("wrench")}</div><div>IH-Audit<small>Instandhaltung</small></div></div>
+    ${NAV.map(([v, l, i]) => `<button class="nav-btn ${act === v ? "active" : ""}" data-act="nav" data-v="${v}">${ic(i)}<span>${l}</span>${v === "actions" && open ? `<span class="nav-badge" title="überfällige Maßnahmen">${open}</span>` : ""}</button>`).join("")}
+    <div class="side-foot">${S.mode === "db" ? "Synchronisiert über deinen Link – gleiche Daten auf jedem Gerät." : "Daten liegen im Browser dieses Geräts. Regelmäßig unter „Daten“ sichern."}${S.settings.company ? "<br><br>" + h(S.settings.company) : ""}</div>`;
+  document.getElementById("tabbar").innerHTML = NAV.filter(n => n[0] !== "daten").map(([v, l, i]) =>
+    `<button class="${act === v ? "active" : ""}" data-act="nav" data-v="${v}">${ic(i)}<span>${l}</span>${v === "actions" && open ? `<span class="nav-badge">${open}</span>` : ""}</button>`).join("");
+}
+
+function go(view, extra) {
+  Object.assign(S, { view, confirm: null }, extra || {});
+  lsSet(LS_UI, JSON.stringify({ view: S.view, auditId: S.auditId, machineId: S.machineId }));
+  render();
+  window.scrollTo(0, 0);
+}
+
+function render() {
+  renderNav();
+  const main = document.getElementById("main");
+  if (!S.ready) { main.innerHTML = '<p class="muted">Lade Audit-Mappe …</p>'; return; }
+  const v = S.view;
+  let html = "";
+  if (v === "home") html = viewHome();
+  else if (v === "audits") html = viewAudits();
+  else if (v === "new") html = viewNew();
+  else if (v === "audit") html = S.audits[S.auditId] ? viewAudit(S.audits[S.auditId]) : viewAudits();
+  else if (v === "report") html = S.audits[S.auditId] ? viewReport(S.audits[S.auditId]) : viewAudits();
+  else if (v === "actions") html = viewActions();
+  else if (v === "machines") html = viewMachines();
+  else if (v === "machine") html = S.machines[S.machineId] ? viewMachine(S.machines[S.machineId]) : viewMachines();
+  else if (v === "wissen") html = viewWissen();
+  else if (v === "daten") html = viewDaten();
+  if (S.readOnly) html = '<div class="ro-banner no-print" style="margin-bottom:14px">Du siehst diese Audit-Mappe nur lesend.</div>' + html;
+  main.innerHTML = html;
+  main.querySelectorAll("textarea").forEach(autoGrow);
+}
+function autoGrow(t) { t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight + 2, 320) + "px"; }
+
+/* ============================================================
+   Diagramme
+   ============================================================ */
+function stackBar(r) {
+  const tot = r.total || 1;
+  const seg = (k, lbl) => r[k] ? `<span class="${k}" style="width:${r[k] / tot * 100}%" data-tip="${lbl}: ${r[k]} von ${r.total}"></span>` : "";
+  return `<div class="stackbar" role="img" aria-label="N.I.O ${r.nio}, bedingt OK ${r.bed}, OK ${r.ok}, nicht bewertet ${r.na}, offen ${r.open}">
+    ${seg("nio", "N.I.O")}${seg("bed", "bedingt OK")}${seg("ok", "OK")}${seg("na", "nicht bewertet")}${seg("open", "noch offen")}</div>
+    <div class="legend">
+      <span><i style="background:var(--nio)"></i>N.I.O <b class="num">${r.nio}</b></span>
+      <span><i style="background:var(--bed-mark)"></i>bed. OK <b class="num">${r.bed}</b></span>
+      <span><i style="background:var(--ok-mark)"></i>OK <b class="num">${r.ok}</b></span>
+      <span><i style="background:var(--na)"></i>n. b. <b class="num">${r.na}</b></span>
+      <span><i style="background:var(--border)"></i>offen <b class="num">${r.open}</b></span>
+    </div>`;
+}
+function catBars(a) {
+  const rows = CHECKLISTS[a.type].cats.map(c => {
+    const r = score(a, c.id);
+    const l = level(r.pct);
+    return `<div class="bar-row" data-tip="${h(c.name)}\nErfüllungsgrad: ${pctTxt(r.pct)}\nN.I.O ${r.nio} · bed. OK ${r.bed} · OK ${r.ok} · offen ${r.open}">
+      <div class="lab">${h(c.name)}</div>
+      <div class="bar-track">${r.pct != null ? `<div class="bar-fill ${l}" style="width:${Math.max(r.pct, 1)}%"></div>` : ""}</div>
+      <div class="v">${pctTxt(r.pct)}</div></div>`;
+  }).join("");
+  return `<div class="bars">${rows}<div class="axis-note"><span></span><div><span>0 %</span><span>50 %</span><span>100 %</span></div><span></span></div></div>`;
+}
+function trendChart(list) {
+  const pts = list.map(a => ({ a, p: score(a).pct, t: Date.parse(a.date || a.created) })).filter(x => x.p != null && !isNaN(x.t));
+  if (!pts.length) return '<p class="muted small">Sobald Audits bewertet sind, erscheint hier der Verlauf.</p>';
+  const W = window.innerWidth < 860 ? Math.max(300, window.innerWidth - 64) : 560, H = 230, L = 40, R = 16, T = 14, B = 30;
+  let t0 = Math.min(...pts.map(p => p.t)), t1 = Math.max(...pts.map(p => p.t));
+  if (t1 - t0 < 864e5 * 20) { t0 -= 864e5 * 15; t1 += 864e5 * 15; }
+  const x = t => L + (t - t0) / (t1 - t0) * (W - L - R);
+  const y = p => T + (100 - p) / 100 * (H - T - B);
+  let g = "";
+  [0, 25, 50, 75, 100].forEach(v => { g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`; });
+  const ticks = W < 420 ? 2 : 4, short = (t1 - t0) <= 864e5 * 120;
+  let prev = "";
+  for (let i = 0; i <= ticks; i++) {
+    const t = t0 + (t1 - t0) * i / ticks, d = new Date(t);
+    const lbl = short ? String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." : String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getFullYear()).slice(2);
+    if (lbl === prev) continue; prev = lbl;
+    g += `<text x="${x(t)}" y="${H - 8}" text-anchor="${i === 0 ? "start" : i === ticks ? "end" : "middle"}">${lbl}</text>`;
+  }
+  const g2 = Number(S.settings.green);
+  g += `<line x1="${L}" x2="${W - R}" y1="${y(g2)}" y2="${y(g2)}" stroke="var(--ok-mark)" stroke-width="1" stroke-dasharray="4 4"/><text x="${W - R}" y="${y(g2) - 5}" text-anchor="end">Ziel ${g2} %</text>`;
+  const used = TYPE_ORDER.filter(t => pts.some(p => p.a.type === t));
+  used.forEach(t => {
+    const ps = pts.filter(p => p.a.type === t).sort((m, n) => m.t - n.t);
+    if (ps.length > 1) g += `<polyline points="${ps.map(p => x(p.t) + "," + y(p.p)).join(" ")}" fill="none" stroke="${TYPE_COLOR[t]}" stroke-width="2" stroke-linejoin="round"/>`;
+    ps.forEach(p => {
+      const tip = `${h(auditTitle(p.a))}\n${CHECKLISTS[t].short} · ${fmtDate(p.a.date)}\nErfüllungsgrad ${pctTxt(p.p)}`;
+      g += `<circle cx="${x(p.t)}" cy="${y(p.p)}" r="5" fill="${TYPE_COLOR[t]}" stroke="var(--surface)" stroke-width="2"/>
+        <circle cx="${x(p.t)}" cy="${y(p.p)}" r="12" fill="transparent" data-tip="${tip}" data-act="open-audit" data-id="${p.a.id}" style="cursor:pointer"/>`;
+    });
+  });
+  const legend = `<div class="legend" style="margin-bottom:8px">${used.map(t => `<span><i style="background:${TYPE_COLOR[t]};border-radius:50%"></i>${CHECKLISTS[t].short}</span>`).join("")}</div>`;
+  return legend + `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Erfüllungsgrad der Audits im Zeitverlauf">${g}</svg>`;
+}
+function hbars(rows, max) {
+  return `<div class="bars">${rows.map(r => `<div class="bar-row" data-tip="${h(r.tip || r.label + ": " + r.value)}"><div class="lab">${r.label}</div>
+    <div class="bar-track" style="background:var(--surface-2)">${r.value ? `<div class="bar-fill" style="width:${r.value / (max || 1) * 100}%;${r.color ? "background:" + r.color : ""}"></div>` : ""}</div>
+    <div class="v">${r.value}</div></div>`).join("")}</div>`;
+}
+
+/* ============================================================
+   Ansichten
+   ============================================================ */
+function typeCards(sel, act) {
+  return `<div class="types">${TYPE_ORDER.map(t => {
+    const c = CHECKLISTS[t];
+    return `<button class="type-card ${sel === t ? "sel" : ""}" data-act="${act}" data-v="${t}">
+      <span class="eyebrow">${h(c.short)}</span><span class="cnt">${items(t).length} <span class="small muted" style="font-weight:500">Prüfpunkte</span></span>
+      <span class="small">${h(c.desc)}</span><span class="src">Blatt: ${h(c.sheet)}</span></button>`;
+  }).join("")}</div>`;
+}
+
+function viewHome() {
+  const list = auditsSorted();
+  const acts = actions();
+  const open = acts.filter(a => a.status !== "erledigt").length;
+  const over = acts.filter(a => a.status === "ueberfaellig").length;
+  const scored = list.filter(a => score(a).pct != null);
+  const avg = scored.length ? scored.reduce((s, a) => s + score(a).pct, 0) / scored.length : null;
+  const ms = machinesSorted();
+  const crit = { A: 0, B: 0, C: 0, "": 0 };
+  ms.forEach(m => crit[critOf(m)]++);
+  const head = `<div class="page-head"><div><div class="eyebrow">${h(S.settings.company || "Audit-Mappe")}</div><h1>Instandhaltungs-Audit</h1>
+    <p class="sub">Checklisten für System, Maschine, Werkzeuge und Ersatzteile – bewerten, Maßnahmen verfolgen, Ergebnisse zeigen.</p></div>
+    ${S.readOnly ? "" : `<button class="btn primary" data-act="nav" data-v="new">${ic("plus")}Neues Audit</button>`}</div>`;
+  const machCard = `<div class="card"><div class="card-head"><h2>Maschinenpark nach Kritikalität</h2><span class="hint">${ms.length} Anlagen erfasst</span></div>
+    ${hbars([
+      { label: '<span class="crit A">A</span> kritisch', value: crit.A, color: "var(--nio)", tip: "A-Maschinen: " + crit.A },
+      { label: '<span class="crit B">B</span> mittel', value: crit.B, color: "var(--bed-mark)", tip: "B-Maschinen: " + crit.B },
+      { label: '<span class="crit C">C</span> gering', value: crit.C, color: "var(--ok-mark)", tip: "C-Maschinen: " + crit.C },
+      { label: '<span class="crit x">?</span> nicht eingestuft', value: crit[""], color: "var(--na)", tip: "Ohne Einstufung: " + crit[""] }
+    ], Math.max(1, ...Object.values(crit)))}
+    <p class="small muted" style="margin-top:12px">Einstufung aus Feld 17 des Maschinen-Stammblatts. <button class="btn ghost small" data-act="nav" data-v="machines">Maschinen ansehen →</button></p></div>`;
+  if (!list.length) {
+    return head + `<div class="stack">
+      <div class="card"><div class="card-head"><h2>Noch kein Audit erfasst</h2><span class="hint">Wähle eine Checkliste, um zu starten</span></div>${typeCards(null, S.readOnly ? "noop" : "start-type")}</div>
+      <div class="grid2">${machCard}
+      <div class="card"><div class="card-head"><h2>So wird bewertet</h2></div>
+        <div class="stack small">
+          <p>Jeder Prüfpunkt erhält wie in der Excel-Vorlage <span class="chip nio">✕ N.I.O</span> <span class="chip bed">! bed. OK</span> <span class="chip ok">✓ OK</span> – zusätzlich <span class="chip">– n. b.</span> für nicht zutreffend.</p>
+          <p>Der <b>Erfüllungsgrad</b> = (OK + ${S.settings.bedWeight} % × bed. OK) ÷ bewertete Punkte. Die Gewichtung und die Ampelgrenzen (grün ab ${S.settings.green} %, gelb ab ${S.settings.yellow} %) sind Startwerte und unter „Daten“ einstellbar.</p>
+          <p>Bei N.I.O und bed. OK trägst du eine Maßnahme mit Verantwortlichem und Termin ein. Alle Maßnahmen landen in der Maßnahmenliste.</p>
+        </div></div></div></div>`;
+  }
+  const last = list[0];
+  const lr = score(last);
+  const openN = acts.filter(a => a.status !== "erledigt").slice(0, 6);
+  return head + `<div class="stack">
+    <div class="grid4">
+      <div class="card tile"><span class="val">${list.length}</span><span class="lbl">Audits gesamt</span></div>
+      <div class="card tile"><span class="val">${pctTxt(avg)}</span><span class="lbl">Ø Erfüllungsgrad</span></div>
+      <div class="card tile"><span class="val">${open}</span><span class="lbl">offene Maßnahmen</span></div>
+      <div class="card tile"><span class="val" style="color:${over ? "var(--nio)" : "inherit"}">${over}</span><span class="lbl">davon überfällig</span></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h2>Erfüllungsgrad im Verlauf</h2><span class="hint">je Audit, nach Checkliste</span></div>${trendChart(list)}</div>
+      <div class="card"><div class="card-head"><h2>Letztes Audit</h2><button class="btn ghost small" data-act="open-audit" data-id="${last.id}">Öffnen →</button></div>
+        <p><b>${h(auditTitle(last))}</b> · ${h(CHECKLISTS[last.type].short)} · ${fmtDate(last.date)}</p>
+        <div class="hero-score" style="margin-top:10px"><span class="big">${pctTxt(lr.pct)}</span>${levelChip(lr.pct, true)}</div>
+        ${stackBar(lr)}
+        <div style="margin-top:16px">${catBars(last)}</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h2>Offene Maßnahmen</h2><button class="btn ghost small" data-act="nav" data-v="actions">Alle →</button></div>
+        ${openN.length ? `<div class="table-wrap"><table><thead><tr><th>Status</th><th>Maßnahme</th><th>Termin</th></tr></thead><tbody>
+        ${openN.map(x => `<tr class="click" data-act="open-audit" data-id="${x.audit.id}" data-item="${x.item.id}"><td>${statusChip(x.status)}</td><td>${h(x.ans.note || "(ohne Text)")}<div class="small muted">${h(auditTitle(x.audit))} · Punkt ${h(x.item.nr)}</div></td><td class="num" style="white-space:nowrap">${fmtDate(x.ans.due)}</td></tr>`).join("")}
+        </tbody></table></div>` : '<p class="muted">Keine offenen Maßnahmen.</p>'}</div>
+      ${machCard}
+    </div></div>`;
+}
+function statusChip(s) {
+  if (s === "erledigt") return '<span class="chip ok">✓ erledigt</span>';
+  if (s === "ueberfaellig") return '<span class="chip nio">✕ überfällig</span>';
+  return '<span class="chip bed">● offen</span>';
+}
+
+function viewAudits() {
+  const list = auditsSorted();
+  return `<div class="page-head"><div><h1>Audits</h1><p class="sub">${list.length} Audit${list.length === 1 ? "" : "s"} erfasst</p></div>
+    ${S.readOnly ? "" : `<button class="btn primary" data-act="nav" data-v="new">${ic("plus")}Neues Audit</button>`}</div>
+    ${list.length ? `<div class="card" style="padding:0"><div class="table-wrap"><table>
+      <thead><tr><th>Datum</th><th>Checkliste</th><th>Objekt</th><th>Auditor</th><th>Fortschritt</th><th>Erfüllungsgrad</th><th>Status</th></tr></thead><tbody>
+      ${list.map(a => { const r = score(a); return `<tr class="click" data-act="open-audit" data-id="${a.id}">
+        <td class="num">${fmtDate(a.date)}</td><td>${h(CHECKLISTS[a.type].short)}</td><td><b>${h(auditTitle(a))}</b>${a.equip ? `<div class="small muted">Equipment ${h(a.equip)}</div>` : ""}</td>
+        <td>${h(a.auditor || "–")}</td><td class="num">${r.total - r.open}/${r.total}</td><td>${levelChip(r.pct)}</td>
+        <td>${a.status === "abgeschlossen" ? '<span class="chip blue">abgeschlossen</span>' : '<span class="chip">in Arbeit</span>'}</td></tr>`; }).join("")}
+      </tbody></table></div></div>` : `<div class="card empty"><p>Noch keine Audits. Starte mit einer der vier Checklisten aus der Vorlage.</p>${S.readOnly ? "" : `<button class="btn primary" data-act="nav" data-v="new">${ic("plus")}Neues Audit</button>`}</div>`}`;
+}
+
+function viewNew() {
+  const t = S.newType, c = CHECKLISTS[t];
+  const isObj = t === "maschine" || t === "kompakt" || t === "werkzeug";
+  const pre = S.newFor && S.machines[S.newFor];
+  return `<div class="page-head"><div><button class="btn ghost" data-act="nav" data-v="audits">${ic("back")}Zurück</button><h1 style="margin-top:6px">Neues Audit</h1></div></div>
+    <div class="stack"><div class="card"><div class="card-head"><h2>1 · Checkliste wählen</h2></div>${typeCards(t, "pick-type")}</div>
+    <form class="card" id="newForm"><div class="card-head"><h2>2 · Kopfdaten</h2><span class="hint">wie im Kopf der Excel-Vorlage</span></div>
+      <div class="form-grid">
+        ${isObj && t !== "werkzeug" ? `<label class="f">Maschine aus Stammdaten<select id="nf-obj"><option value="">– keine / frei eingeben –</option>${machinesSorted().map(m => `<option value="${m.id}" ${pre && pre.id === m.id ? "selected" : ""}>${h(m.name)}</option>`).join("")}</select></label>` : ""}
+        <label class="f">${h(c.objLabel)}<input type="text" id="nf-title" value="${h(pre && t !== "werkzeug" ? pre.name : "")}" placeholder="${t === "allg" ? "z. B. Instandhaltung Halle 2" : ""}"></label>
+        ${t !== "allg" ? `<label class="f">Equipmentnummer<input type="text" id="nf-equip" value="${h(pre && t !== "werkzeug" ? pre.equip || "" : "")}"></label>` : ""}
+        <label class="f">Datum<input type="date" id="nf-date" value="${todayISO()}"></label>
+        <label class="f">Auditor<input type="text" id="nf-auditor"></label>
+        ${t !== "allg" ? `<label class="f">Abteilung / Bereich<input type="text" id="nf-area"></label>` : ""}
+      </div>
+      <div class="row" style="margin-top:16px"><button class="btn primary" type="submit">${ic("audit")}Audit starten (${items(t).length} Punkte)</button></div>
+    </form></div>`;
+}
+
+function itemHtml(a, it) {
+  const x = (a.answers && a.answers[it.id]) || {};
+  const ro = S.readOnly ? "disabled" : "";
+  const needs = x.r === "nio" || x.r === "bed";
+  return `<div class="item ${x.r ? "r-" + x.r : ""}" id="it-${it.id}" data-item="${it.id}">
+    <div class="nr">${h(it.nr)}</div>
+    <div class="q"><p>${h(it.de)}</p>${S.showEn && it.en ? `<p class="en">${h(it.en)}</p>` : ""}${!S.showEn && /^ISO/.test(it.en) ? `<p class="en">${h(it.en)}</p>` : ""}</div>
+    <div class="body">
+      <div class="rate" role="group" aria-label="Bewertung Punkt ${h(it.nr)}">
+        ${RATINGS.map(r => `<button type="button" class="${r.v} ${x.r === r.v ? "on" : ""}" data-act="rate" data-v="${r.v}" aria-pressed="${x.r === r.v}" title="${r.long}" ${ro}><span aria-hidden="true">${r.icon}</span>${r.label}</button>`).join("")}
+      </div>
+      <textarea rows="1" data-f="note" placeholder="${needs ? "Befund / Maßnahme beschreiben …" : "Bemerkung (optional)"}" aria-label="Maßnahmen / Bemerkung" ${ro}>${h(x.note || "")}</textarea>
+      ${needs ? `<div class="measure">
+        <label class="f">Verantwortlich<input type="text" data-f="resp" value="${h(x.resp || "")}" ${ro}></label>
+        <label class="f">Termin<input type="date" data-f="due" value="${h(x.due || "")}" ${ro}></label>
+        <label class="check"><input type="checkbox" data-f="done" ${x.done ? "checked" : ""} ${ro}>erledigt</label>
+      </div>` : ""}
+    </div></div>`;
+}
+function summaryHtml(a) {
+  const r = score(a);
+  return `<div class="card"><div class="eyebrow">Erfüllungsgrad</div>
+    <div class="hero-score" style="margin-top:6px"><span class="big">${pctTxt(r.pct)}</span>${levelChip(r.pct, true)}</div>
+    ${stackBar(r)}
+    <p class="small muted" style="margin-top:8px">${r.total - r.open} von ${r.total} Punkten bearbeitet</p>
+    <div style="margin-top:16px">${catBars(a)}</div></div>`;
+}
+function viewAudit(a) {
+  const c = CHECKLISTS[a.type];
+  const ro = S.readOnly ? "disabled" : "";
+  const del = S.confirm === "del-" + a.id;
+  return `<div class="page-head"><div><button class="btn ghost" data-act="nav" data-v="audits">${ic("back")}Alle Audits</button>
+      <div class="eyebrow" style="margin-top:6px">Audit-Checkliste · ${h(c.name)}</div><h1>${h(auditTitle(a))}</h1></div>
+    <div class="row"><button class="btn" data-act="report">${ic("doc")}Bericht</button>
+      ${S.readOnly ? "" : `<button class="btn ${a.status === "abgeschlossen" ? "" : "primary"}" data-act="toggle-status">${a.status === "abgeschlossen" ? "Wieder öffnen" : "Abschließen"}</button>`}</div></div>
+  <div class="audit-layout">
+    <div class="stack">
+      <div class="card"><div class="form-grid">
+        <label class="f">${h(c.objLabel)}<input type="text" data-m="title" value="${h(a.title || "")}" ${ro}></label>
+        ${a.type !== "allg" ? `<label class="f">Equipmentnummer<input type="text" data-m="equip" value="${h(a.equip || "")}" ${ro}></label>` : ""}
+        <label class="f">Datum<input type="date" data-m="date" value="${h(a.date || "")}" ${ro}></label>
+        <label class="f">Auditor<input type="text" data-m="auditor" value="${h(a.auditor || "")}" ${ro}></label>
+        ${a.type !== "allg" ? `<label class="f">Abteilung / Bereich<input type="text" data-m="area" value="${h(a.area || "")}" ${ro}></label>` : ""}
+      </div>
+      <div class="row" style="margin-top:12px;justify-content:space-between">
+        <span class="small muted">Bewertung „${h(c.rateLabel)}“ · Vorlage: ${h(c.sheet)}</span>
+        ${a.type === "allg" ? `<label class="check small"><input type="checkbox" data-act="toggle-en" ${S.showEn ? "checked" : ""}>Englische Fassung zeigen</label>` : ""}
+      </div></div>
+      ${c.cats.map(cat => { const r = score(a, cat.id); return `<section class="card cat" id="cat-${cat.id}">
+        <div class="cat-head"><h2>${h(cat.name)}</h2><span class="small muted num" data-cat-score="${cat.id}">${r.total - r.open}/${r.total} · ${pctTxt(r.pct)}</span></div>
+        ${cat.items.map(it => itemHtml(a, { id: it[0], nr: it[1], de: it[2], en: it[3], cat: cat.id })).join("")}</section>`; }).join("")}
+      ${S.readOnly ? "" : `<div class="row"><button class="btn danger ${del ? "armed" : ""}" data-act="del-audit">${ic("trash")}${del ? "Wirklich löschen? Nochmal tippen" : "Audit löschen"}</button></div>`}
+    </div>
+    <aside class="summary" id="summary">${summaryHtml(a)}</aside>
+  </div>`;
+}
+
+function viewReport(a) {
+  const c = CHECKLISTS[a.type];
+  const r = score(a);
+  const acts = actions().filter(x => x.audit.id === a.id);
+  const m = a.objectId && S.machines[a.objectId];
+  const rc = v => { const x = RATINGS.find(q => q.v === v); return x ? `<span class="chip ${v === "na" ? "" : v}">${x.icon} ${x.label}</span>` : '<span class="muted">offen</span>'; };
+  return `<div class="page-head no-print"><div><button class="btn ghost" data-act="open-audit" data-id="${a.id}">${ic("back")}Zur Checkliste</button></div>
+    <div class="row">${canPrint ? `<button class="btn primary" data-act="print">${ic("print")}Drucken / PDF</button>` : ""}<button class="btn" data-act="copy-report">Text kopieren</button></div></div>
+  <div class="stack" id="report">
+    <div class="card">
+      <div class="eyebrow">${h(S.settings.company || "Audit-Bericht")} · Audit-Checkliste für</div>
+      <h1 style="margin:4px 0 12px">${h(auditTitle(a))}</h1>
+      <dl class="kv">
+        <dt>Checkliste</dt><dd>${h(c.name)} (${items(a.type).length} Prüfpunkte)</dd>
+        ${a.equip ? `<dt>Equipmentnummer</dt><dd>${h(a.equip)}</dd>` : ""}
+        ${m ? `<dt>Inventarnummer</dt><dd>${h((m.fields.f2 || {}).v || "–")}</dd><dt>Kritikalität</dt><dd>${critOf(m) || "–"}</dd>` : ""}
+        <dt>Datum</dt><dd>${fmtDate(a.date)}</dd><dt>Auditor</dt><dd>${h(a.auditor || "–")}</dd>
+        ${a.area ? `<dt>Bereich</dt><dd>${h(a.area)}</dd>` : ""}
+        <dt>Status</dt><dd>${a.status === "abgeschlossen" ? "abgeschlossen" : "in Arbeit"}</dd>
+      </dl></div>
+    <div class="grid2">
+      <div class="card"><div class="eyebrow">Ergebnis</div><div class="hero-score" style="margin-top:6px"><span class="big">${pctTxt(r.pct)}</span>${levelChip(r.pct, true)}</div>${stackBar(r)}
+        <p class="small muted" style="margin-top:10px">Erfüllungsgrad = (OK + ${S.settings.bedWeight} % × bed. OK) ÷ bewertete Punkte. Ampel: grün ab ${S.settings.green} %, gelb ab ${S.settings.yellow} %.</p></div>
+      <div class="card"><div class="eyebrow" style="margin-bottom:12px">Ergebnis je Kapitel</div>${catBars(a)}</div>
+    </div>
+    <div class="card"><h2 style="margin-bottom:12px">Maßnahmenplan</h2>
+      ${acts.length ? `<div class="table-wrap"><table><thead><tr><th>Nr.</th><th>Befund / Maßnahme</th><th>Bewertung</th><th>Verantwortlich</th><th>Termin</th><th>Status</th></tr></thead><tbody>
+      ${acts.map(x => `<tr><td class="num">${h(x.item.nr)}</td><td>${h(x.ans.note || "–")}<div class="small muted">${h(x.item.de)}</div></td><td>${rc(x.ans.r)}</td><td>${h(x.ans.resp || "–")}</td><td class="num">${fmtDate(x.ans.due)}</td><td>${statusChip(x.status)}</td></tr>`).join("")}
+      </tbody></table></div>` : '<p class="muted">Keine Maßnahmen erforderlich.</p>'}</div>
+    <div class="card"><h2 style="margin-bottom:12px">Alle Prüfpunkte</h2><div class="table-wrap"><table>
+      <thead><tr><th>Nr.</th><th>Check-Punkt</th><th>Bewertung</th><th>Maßnahmen / Bemerkung</th></tr></thead><tbody>
+      ${c.cats.map(cat => `<tr><th colspan="4">${h(cat.name)}</th></tr>` + cat.items.map(it => { const x = (a.answers || {})[it[0]] || {}; return `<tr><td class="num">${h(it[1])}</td><td>${h(it[2])}</td><td>${rc(x.r)}</td><td>${h(x.note || "")}</td></tr>`; }).join("")).join("")}
+      </tbody></table></div>
+      <div class="sig"><div>Datum, Unterschrift Auditor</div><div>Datum, Unterschrift Bereichsverantwortlicher</div></div></div>
+  </div>`;
+}
+
+function viewActions() {
+  const all = actions();
+  const f = S.actFilter;
+  const list = all.filter(x => f === "alle" || (f === "offen" ? x.status !== "erledigt" : x.status === f));
+  const cnt = s => all.filter(x => x.status === s).length;
+  const r = { nio: cnt("ueberfaellig"), bed: cnt("offen"), ok: cnt("erledigt") };
+  const tot = all.length || 1;
+  const ro = S.readOnly ? "disabled" : "";
+  return `<div class="page-head"><div><h1>Maßnahmen</h1><p class="sub">Aus allen Prüfpunkten mit N.I.O oder bed. OK</p></div></div>
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Umsetzungsstand</h2><span class="hint num">${all.length} Maßnahmen</span></div>
+      <div class="stackbar" role="img" aria-label="überfällig ${r.nio}, offen ${r.bed}, erledigt ${r.ok}">
+        ${r.nio ? `<span class="nio" style="width:${r.nio / tot * 100}%" data-tip="überfällig: ${r.nio}"></span>` : ""}${r.bed ? `<span class="bed" style="width:${r.bed / tot * 100}%" data-tip="offen: ${r.bed}"></span>` : ""}${r.ok ? `<span class="ok" style="width:${r.ok / tot * 100}%" data-tip="erledigt: ${r.ok}"></span>` : ""}</div>
+      <div class="legend"><span><i style="background:var(--nio)"></i>überfällig <b class="num">${r.nio}</b></span><span><i style="background:var(--bed-mark)"></i>offen <b class="num">${r.bed}</b></span><span><i style="background:var(--ok-mark)"></i>erledigt <b class="num">${r.ok}</b></span></div></div>
+    <div class="filters">${[["offen", "Offen"], ["ueberfaellig", "Überfällig"], ["erledigt", "Erledigt"], ["alle", "Alle"]].map(([v, l]) => `<button class="${f === v ? "on" : ""}" data-act="act-filter" data-v="${v}">${l}</button>`).join("")}</div>
+    <div class="card" style="padding:0">${list.length ? `<div class="table-wrap"><table><thead><tr><th>Status</th><th>Befund / Maßnahme</th><th>Audit</th><th>Verantwortlich</th><th>Termin</th><th>Erledigt</th></tr></thead><tbody>
+      ${list.map(x => `<tr><td>${statusChip(x.status)}</td>
+        <td><a href="#" data-act="open-audit" data-id="${x.audit.id}" data-item="${x.item.id}">${h(x.ans.note || "(ohne Text)")}</a><div class="small muted">Punkt ${h(x.item.nr)}: ${h(x.item.de)}</div></td>
+        <td>${h(auditTitle(x.audit))}<div class="small muted">${h(CHECKLISTS[x.audit.type].short)} · ${fmtDate(x.audit.date)}</div></td>
+        <td>${h(x.ans.resp || "–")}</td><td class="num">${fmtDate(x.ans.due)}</td>
+        <td><input type="checkbox" aria-label="erledigt" data-act="act-done" data-id="${x.audit.id}" data-item="${x.item.id}" ${x.ans.done ? "checked" : ""} ${ro} style="width:20px;height:20px"></td></tr>`).join("")}
+      </tbody></table></div>` : '<div class="empty"><p>Keine Maßnahmen in dieser Ansicht.</p></div>'}</div>
+  </div>`;
+}
+
+function viewMachines() {
+  const ms = machinesSorted();
+  return `<div class="page-head"><div><h1>Maschinen</h1><p class="sub">Stammblätter nach „Checkliste_Maschine_Daten“ (28 Angaben je Anlage)</p></div>
+    ${S.readOnly ? "" : `<button class="btn primary" data-act="new-machine">${ic("plus")}Maschine anlegen</button>`}</div>
+    ${ms.length ? `<div class="mach-grid">${ms.map(m => {
+      const f = m.fields || {}; const cr = critOf(m);
+      const la = auditsSorted().find(a => a.objectId === m.id);
+      const filled = MFIELDS.filter(x => f[x[0]] && f[x[0]].v).length;
+      return `<button class="card mach" data-act="open-machine" data-id="${m.id}">
+        <div class="row" style="justify-content:space-between;width:100%;flex-wrap:nowrap"><h3>${h(m.name || "Ohne Namen")}</h3><span class="crit ${cr || "x"}" title="Kritikalität ${cr || "nicht eingestuft"}">${cr || "?"}</span></div>
+        <dl class="kv"><dt>Inventar-Nr.</dt><dd>${h((f.f2 || {}).v || "–")}</dd><dt>Hersteller / Typ</dt><dd>${h([(f.f3 || {}).v, (f.f4 || {}).v].filter(Boolean).join(" · ") || "–")}</dd><dt>Zustand</dt><dd>${h((f.f12 || {}).v || "–")}</dd><dt>Letztes Audit</dt><dd>${la ? fmtDate(la.date) + " · " + pctTxt(score(la).pct) : "–"}</dd></dl>
+        <div class="small muted">${filled} von ${MFIELDS.length} Angaben ausgefüllt</div></button>`;
+    }).join("")}</div>` : `<div class="card empty"><p>Noch keine Maschinen erfasst.</p>${S.readOnly ? "" : `<div class="row"><button class="btn primary" data-act="seed-machines">Maschinen aus der Vorlage übernehmen</button><button class="btn" data-act="new-machine">Leeres Stammblatt</button></div>`}</div>`}`;
+}
+function viewMachine(m) {
+  const ro = S.readOnly ? "disabled" : "";
+  const f = m.fields || {};
+  const del = S.confirm === "delm-" + m.id;
+  const aud = auditsSorted().filter(a => a.objectId === m.id);
+  return `<div class="page-head"><div><button class="btn ghost" data-act="nav" data-v="machines">${ic("back")}Alle Maschinen</button>
+      <div class="eyebrow" style="margin-top:6px">Checkliste Maschinendaten</div><h1>${h(m.name || "Neue Maschine")}</h1>${m.source ? `<p class="sub small">Übernommen aus Blatt „${h(m.source)}“</p>` : ""}</div>
+    ${S.readOnly ? "" : `<div class="row"><button class="btn primary" data-act="audit-for" data-v="maschine">${ic("audit")}Maschinen-Audit</button><button class="btn" data-act="audit-for" data-v="kompakt">Kompakt-Audit</button></div>`}</div>
+  <div class="stack">
+    <div class="card"><div class="form-grid">
+      <label class="f">Maschinenbezeichnung<input type="text" data-mm="name" value="${h(m.name || "")}" ${ro}></label>
+      <label class="f">Equipmentnummer<input type="text" data-mm="equip" value="${h(m.equip || "")}" ${ro}></label></div></div>
+    <div class="card"><div class="card-head"><h2>Stammdaten</h2><span class="hint">Nr. · Check-Punkt · Angaben · Maßnahmen / Bemerkung</span></div>
+      ${MFIELDS.map(([id, t, hint], i) => `<div class="field-row"><span class="n">${i + 1}</span><span class="t">${h(t)}${hint ? `<small>${h(hint)}</small>` : ""}</span>
+        <input type="text" data-mf="${id}" data-k="v" value="${h((f[id] || {}).v || "")}" aria-label="${h(t)} – Angaben" placeholder="Angaben" ${ro}>
+        <input type="text" data-mf="${id}" data-k="n" value="${h((f[id] || {}).n || "")}" aria-label="${h(t)} – Bemerkung" placeholder="Bemerkung" ${ro}></div>`).join("")}
+    </div>
+    <div class="card"><div class="card-head"><h2>Audits dieser Maschine</h2></div>
+      ${aud.length ? `<div class="table-wrap"><table><thead><tr><th>Datum</th><th>Checkliste</th><th>Erfüllungsgrad</th></tr></thead><tbody>${aud.map(a => `<tr class="click" data-act="open-audit" data-id="${a.id}"><td class="num">${fmtDate(a.date)}</td><td>${h(CHECKLISTS[a.type].name)}</td><td>${levelChip(score(a).pct)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">Noch kein Audit für diese Maschine.</p>'}</div>
+    ${S.readOnly ? "" : `<div class="row"><button class="btn danger ${del ? "armed" : ""}" data-act="del-machine">${ic("trash")}${del ? "Wirklich löschen? Nochmal tippen" : "Maschine löschen"}</button></div>`}
+  </div>`;
+}
+
+function viewWissen() {
+  return `<div class="page-head"><div><h1>Wissen: Instandhaltung</h1><p class="sub">Normen, Strategien und Kennzahlen, auf die sich die Checklisten beziehen</p></div></div>
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Die vier Grundmaßnahmen nach DIN 31051</h2><span class="hint">Ausgabe 2019-06</span></div>
+      <p class="prose" style="margin-bottom:16px">DIN 31051 definiert Instandhaltung als Kombination aller technischen und administrativen Maßnahmen sowie Maßnahmen des Managements während des Lebenszyklus einer Einheit, die dem Erhalt oder der Wiederherstellung ihres funktionsfähigen Zustands dienen, sodass sie die geforderte Funktion erfüllen kann.</p>
+      <div class="din"><div class="din-root">Instandhaltung</div><div class="din-kids">
+        <div class="din-kid"><div class="tag">vorbeugend</div><h3>Wartung</h3><p class="small">Verzögert den Abbau des vorhandenen Abnutzungsvorrats – z. B. Schmieren, Nachfüllen von Betriebsstoffen, Tausch von Verschleißteilen.</p><p class="small muted" style="margin-top:6px">Checkliste: Schmierpläne, Wartungsnachweise</p></div>
+        <div class="din-kid"><div class="tag">feststellen</div><h3>Inspektion</h3><p class="small">Prüft den Ist-Zustand auf Konformität – durch Messen, Beobachten oder Funktionsprüfung.</p><p class="small muted" style="margin-top:6px">Checkliste: Mechanik, Hydraulik, Pneumatik, Elektrik</p></div>
+        <div class="din-kid"><div class="tag">wiederherstellen</div><h3>Instandsetzung</h3><p class="small">Stellt die Funktion einer fehlerhaften Einheit wieder her – Reparieren oder Austauschen.</p><p class="small muted" style="margin-top:6px">Checkliste: Störungen, ungeplante Reparaturen</p></div>
+        <div class="din-kid"><div class="tag">verbessern</div><h3>Verbesserung</h3><p class="small">Erhöht Zuverlässigkeit, Instandhaltbarkeit oder Sicherheit, ohne die geforderte Funktion zu ändern.</p><p class="small muted" style="margin-top:6px">Checkliste: Schwachstellen- und Schadensanalyse</p></div>
+      </div></div></div>
+
+    <div class="card"><div class="card-head"><h2>Instandhaltungsstrategien</h2><span class="hint">Begriffe nach DIN EN 13306</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Strategie</th><th>Auslöser</th><th>Stärken</th><th>Grenzen</th><th>Typischer Einsatz</th></tr></thead><tbody>
+        <tr><td><b>Korrektiv</b> (ausfallbedingt, reaktiv)</td><td>Ausfall / Störung</td><td>Abnutzungsvorrat wird voll genutzt, kein Planungsaufwand</td><td>Ungeplante Stillstände, Folgeschäden</td><td>C-Anlagen, redundante Einheiten</td></tr>
+        <tr><td><b>Präventiv, vorausbestimmt</b></td><td>Feste Intervalle (Zeit, Zyklen, Laufzeit)</td><td>Gut planbar, Ausfälle werden vorgebeugt</td><td>Teile werden ggf. zu früh getauscht</td><td>Sicherheitsrelevante Teile, Herstellervorgaben, gesetzliche Prüfungen</td></tr>
+        <tr><td><b>Zustandsorientiert</b></td><td>Inspektion / Überwachung zeigt Abnutzung</td><td>Eingriff erst bei Bedarf</td><td>Erfordert Messung, Grenzwerte und Inspektionsdisziplin</td><td>Lager, Spindeln, Hydraulik</td></tr>
+        <tr><td><b>Voraussagend</b> (predictive)</td><td>Prognose aus Daten- und Trendanalyse</td><td>Eingriff kurz vor dem erwarteten Ausfall</td><td>Sensorik, Datenbasis und Auswertung nötig</td><td>A-Anlagen mit hohen Ausfallkosten</td></tr>
+        <tr><td><b>TPM</b> (Total Productive Maintenance)</td><td>Ganzheitlicher Ansatz, Bediener übernehmen einfache Pflege</td><td>Kontinuierliche Verbesserung der OEE, Einbindung aller Beteiligten</td><td>Braucht Schulung und Führung</td><td>Automobilindustrie (IATF 16949, Abschnitt 8.5.1.5)</td></tr>
+      </tbody></table></div>
+      <p class="small muted" style="margin-top:10px">Prüfpunkt 8 der allgemeinen Checkliste fragt, welche Strategie angewendet wird. In der Praxis werden die Strategien je nach Kritikalität der Anlage kombiniert.</p></div>
+
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h2>Kennzahlen</h2><span class="hint">Prüfpunkte 24, 37, 38</span></div>
+        <div class="table-wrap"><table><tbody>
+          <tr><td><b>MTBF</b><div class="small muted">Mean Time Between Failures</div></td><td><span class="formula">Betriebszeit ÷ Anzahl Ausfälle</span></td></tr>
+          <tr><td><b>MTTR</b><div class="small muted">Mean Time To Repair</div></td><td><span class="formula">Summe Reparaturzeit ÷ Anzahl Reparaturen</span></td></tr>
+          <tr><td><b>Technische Verfügbarkeit</b></td><td><span class="formula">MTBF ÷ (MTBF + MTTR)</span></td></tr>
+          <tr><td><b>OEE</b> / GAE<div class="small muted">Gesamtanlageneffektivität</div></td><td><span class="formula">Verfügbarkeit × Leistung × Qualität</span></td></tr>
+          <tr><td><b>PM-Erfüllung</b></td><td><span class="formula">durchgeführte ÷ geplante PM-Aufträge</span></td></tr>
+        </tbody></table></div>
+        <p class="small muted" style="margin-top:10px">DIN EN 15341 enthält über 50 Leistungskennzahlen für die Instandhaltung. IATF 16949 nennt OEE, MTBF, MTTR und die Einhaltung der vorbeugenden Instandhaltung als Beispiele für dokumentierte Instandhaltungsziele.</p></div>
+      <div class="card"><div class="card-head"><h2>Rechner</h2><span class="hint">für das Gespräch vor Ort</span></div>
+        <div class="stack">
+          <div class="form-grid">
+            <label class="f">Betriebszeit [h]<input type="number" id="c-bz" min="0" step="any" value="720"></label>
+            <label class="f">Anzahl Ausfälle<input type="number" id="c-n" min="0" step="1" value="4"></label>
+            <label class="f">Reparaturzeit gesamt [h]<input type="number" id="c-rz" min="0" step="any" value="12"></label>
+          </div>
+          <div class="grid3" id="c-out1"></div>
+          <div class="form-grid">
+            <label class="f">Verfügbarkeit [%]<input type="number" id="c-v" min="0" max="100" step="any" value="90"></label>
+            <label class="f">Leistung [%]<input type="number" id="c-l" min="0" max="100" step="any" value="95"></label>
+            <label class="f">Qualität [%]<input type="number" id="c-q" min="0" max="100" step="any" value="99"></label>
+          </div>
+          <div id="c-out2"></div>
+          <p class="small muted">Die Startwerte sind Rechenbeispiele, keine Messwerte.</p>
+        </div></div>
+    </div>
+
+    <div class="card"><div class="card-head"><h2>Normen und Vorschriften</h2></div>
+      <div class="table-wrap"><table><thead><tr><th>Regelwerk</th><th>Inhalt</th><th>Bezug zur Checkliste</th></tr></thead><tbody>
+        <tr><td><b>DIN 31051</b> (2019-06)</td><td>Grundlagen der Instandhaltung: Wartung, Inspektion, Instandsetzung, Verbesserung</td><td>Allgemein 9–14, Maschine 2–2.8</td></tr>
+        <tr><td><b>DIN EN 13306</b></td><td>Begriffe der Instandhaltung (Fachwörterbuch), Instandhaltungsarten und -strategien</td><td>Allgemein 8</td></tr>
+        <tr><td><b>DIN EN 15341</b></td><td>Wesentliche Leistungskennzahlen (KPI) für die Instandhaltung</td><td>Allgemein 24, 37, 38</td></tr>
+        <tr><td><b>IATF 16949:2016</b>, 8.5.1.5</td><td>Dokumentiertes TPM-System: Schlüsselanlagen ermitteln, Ressourcen bereitstellen, Ersatzteilverfügbarkeit, Verpackung und Konservierung von Ausrüstung, Werkzeugen und Prüfmitteln, kundenspezifische Anforderungen, dokumentierte Instandhaltungsziele (z. B. OEE, MTBF, MTTR), regelmäßige Überprüfung des Instandhaltungsplans, vorausschauende Methoden und periodische Überholung</td><td>Kompakt N1–N2d</td></tr>
+        <tr><td><b>ISO/TS 16949:2009</b>, 7.5.1.4 und 6.4.2</td><td>Vorgänger der IATF 16949. Die Normfragen im Kompakt-Audit stammen wörtlich aus diesen Abschnitten (vorbeugende/vorausschauende Instandhaltung, Ordnung und Sauberkeit der Betriebsstätten)</td><td>Kompakt N1–N3</td></tr>
+        <tr><td><b>BetrSichV</b> § 10</td><td>Instandhaltung von Arbeitsmitteln: Sicherer Zustand während der gesamten Verwendungsdauer, Durchführung auf Basis einer Gefährdungsbeurteilung und der Herstellerangaben, nur durch fachkundige, beauftragte und unterwiesene Beschäftigte oder vergleichbar qualifizierte Fremdfirmen</td><td>Allgemein 15, 16, 39</td></tr>
+        <tr><td><b>BetrSichV</b> § 14</td><td>Prüfung von Arbeitsmitteln durch eine zur Prüfung befähigte Person</td><td>Allgemein 12, 39</td></tr>
+        <tr><td><b>TRBS 1112</b></td><td>Technische Regel zur Gefährdungsbeurteilung und zu Schutzmaßnahmen bei Instandhaltungsarbeiten nach § 10 BetrSichV</td><td>Allgemein 39</td></tr>
+        <tr><td><b>DGUV Vorschrift 3</b></td><td>Prüfung elektrischer Anlagen und Betriebsmittel. Richtwerte: ortsveränderliche Geräte 6 Monate (Baustellen 3 Monate), bei Fehlerquote unter 2 % in Werkstätten bis 1 Jahr; ortsfeste Anlagen 4 Jahre. Maßgeblich ist die Gefährdungsbeurteilung</td><td>Maschine 2.8</td></tr>
+        <tr><td><b>AwSV</b></td><td>Wassergefährdungsklassen: WGK 1 schwach, WGK 2 deutlich, WGK 3 stark wassergefährdend; nicht eingestufte Stoffe gelten als WGK 3</td><td>Stammblatt Feld 26</td></tr>
+      </tbody></table></div></div>
+
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h2>Kritikalität A / B / C</h2><span class="hint">Stammblatt Feld 17</span></div>
+        <div class="stack small">
+          <p class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="crit A">A</span><span>Ausfall stoppt die Produktion oder gefährdet Sicherheit/Qualität, keine Ersatzmaschine verfügbar. Vorbeugende oder zustandsorientierte IH, Ersatzteile auf Lager.</span></p>
+          <p class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="crit B">B</span><span>Ausfall beeinträchtigt die Produktion, Ausweichen ist begrenzt möglich. Planmäßige Wartung und Inspektion.</span></p>
+          <p class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="crit C">C</span><span>Ausfall hat geringe Auswirkung oder es gibt Redundanz. Ausfallbedingte IH kann wirtschaftlich sein.</span></p>
+          <p class="muted">Übliche Einteilung in der Praxis. Die genauen Kriterien legt jeder Betrieb selbst fest; die Vorlage nennt nur die Klassen A, B, C.</p>
+        </div></div>
+      <div class="card"><div class="card-head"><h2>Hinweise zur Vorlage</h2></div>
+        <div class="stack small">
+          <div class="note">Prüfpunkt 24 nennt im deutschen Text eine technische Verfügbarkeit von <b>90 %</b>, die englische Fassung <b>80 %</b>. Bitte den gültigen Zielwert klären.</div>
+          <div class="note info">ISO/TS 16949 wurde 2016 durch IATF 16949 ersetzt. Die Fragen des Kompakt-Audits entsprechen inhaltlich weiterhin den Anforderungen aus IATF 16949, 8.5.1.5.</div>
+          <p class="muted">Die Excel-Vorlage enthält Spalten „Sum“ und „Total“, aber keine Formel. Die Berechnung des Erfüllungsgrads in dieser App ist deshalb ein Vorschlag und unter „Daten“ einstellbar.</p>
+        </div></div>
+    </div>
+
+    <div class="card"><h2 style="margin-bottom:10px">Quellen</h2><ul class="sources small">
+      <li><a href="https://www.baunormenlexikon.de/norm/din-31051/8d1293a4-de10-49d4-9fee-0b415e6545a1" target="_blank" rel="noopener">DIN 31051, Ausgabe 2019-06 – Baunormenlexikon</a></li>
+      <li><a href="https://www.buerklin.com/de/elektronik-kompetenz/instandhaltung/din-31051-grundlagen-der-instandhaltung/" target="_blank" rel="noopener">DIN 31051: Grundlagen der Instandhaltung – Bürklin</a></li>
+      <li><a href="https://ihb.tuev-media.de/docs/din_en_13306.html" target="_blank" rel="noopener">DIN EN 13306 – Der Instandhaltungs-Berater (TÜV Media)</a></li>
+      <li><a href="https://de.wikipedia.org/wiki/Instandhaltung" target="_blank" rel="noopener">Instandhaltung – Wikipedia</a></li>
+      <li><a href="https://blog.ccc-industriesoftware.de/kennzahlen-und-kpis-instandhaltung/" target="_blank" rel="noopener">Kennzahlen der Instandhaltung nach DIN & VDI</a></li>
+      <li><a href="https://comain.cloud/glossar/mttr-mtbf" target="_blank" rel="noopener">MTTR und MTBF – Glossar</a></li>
+      <li><a href="https://de.wikipedia.org/wiki/Gesamtanlageneffektivit%C3%A4t" target="_blank" rel="noopener">Gesamtanlageneffektivität – Wikipedia</a></li>
+      <li><a href="https://community.advisera.com/topic/total-productive-maintenance-in-iatf-16949/" target="_blank" rel="noopener">Total Productive Maintenance in IATF 16949 – Advisera</a></li>
+      <li><a href="https://elsmar.com/elsmarqualityforum/threads/iatf-16949-section-8-5-1-5-total-productive-maintenance.70125/" target="_blank" rel="noopener">IATF 16949 Section 8.5.1.5 – Elsmar Cove</a></li>
+      <li><a href="https://elsmar.com/elsmarqualityforum/threads/ts-16949-clause-7-5-1-4-preventive-and-predictive-maintenance-requirements-scope.54706/" target="_blank" rel="noopener">TS 16949 Clause 7.5.1.4 – Elsmar Cove</a></li>
+      <li><a href="https://www.gesetze-im-internet.de/betrsichv_2015/BJNR004910015.html" target="_blank" rel="noopener">Betriebssicherheitsverordnung – gesetze-im-internet.de</a></li>
+      <li><a href="https://www.baua.de/DE/Angebote/Regelwerk/TRBS/pdf/TRBS-1112.pdf?__blob=publicationFile&v=3" target="_blank" rel="noopener">TRBS 1112 Instandhaltung – BAuA</a></li>
+      <li><a href="https://www.forum-verlag.com/fachwissen/elektrosicherheit-und-elektrotechnik/prueffristen-nach-dguv-v3/" target="_blank" rel="noopener">Prüffristen nach DGUV V3 – Forum Verlag</a></li>
+      <li><a href="https://www.umweltbundesamt.de/system/files/medien/421/dokumente/info_awsv_dieter_wgk.pdf" target="_blank" rel="noopener">WGK-Einstufung nach AwSV – Umweltbundesamt</a></li>
+    </ul></div>
+  </div>`;
+}
+
+function viewDaten() {
+  const ro = S.readOnly ? "disabled" : "";
+  const st = S.settings;
+  const imp = S.importData;
+  return `<div class="page-head"><div><h1>Daten & Einstellungen</h1><p class="sub">${S.mode === "db" ? "Deine Daten werden mit diesem Link gespeichert und sind auf jedem Gerät gleich, auf dem du ihn öffnest." : "Deine Daten liegen nur im Browser dieses Geräts."}</p></div></div>
+  <div class="stack">
+    <div class="card"><div class="card-head"><h2>Einstellungen</h2></div>
+      <div class="form-grid">
+        <label class="f">Firma / Werk / Abteilung (erscheint im Bericht)<input type="text" id="st-company" value="${h(st.company)}" ${ro}></label>
+        <label class="f">Gewicht „bed. OK“ [%]<input type="number" id="st-bed" min="0" max="100" value="${h(st.bedWeight)}" ${ro}></label>
+        <label class="f">Ampel grün ab [%]<input type="number" id="st-green" min="0" max="100" value="${h(st.green)}" ${ro}></label>
+        <label class="f">Ampel gelb ab [%]<input type="number" id="st-yellow" min="0" max="100" value="${h(st.yellow)}" ${ro}></label>
+      </div>
+      <p class="small muted" style="margin-top:10px">Erfüllungsgrad = (OK + Gewicht × bed. OK) ÷ (N.I.O + bed. OK + OK). „n. b.“ und offene Punkte zählen nicht mit.</p></div>
+    <div class="card"><div class="card-head"><h2>Sichern & übertragen</h2></div>
+      <div class="row">
+        <button class="btn primary" data-act="export-json">${ic("daten")}Backup speichern (.json)</button>
+        <button class="btn" data-act="export-csv">Maßnahmen als CSV (Excel)</button>
+        ${S.readOnly ? "" : `<button class="btn" data-act="import">Backup laden …</button>`}
+      </div>
+      ${imp ? `<div class="note info" style="margin-top:14px">Backup enthält <b>${imp.audits.length}</b> Audits und <b>${imp.machines.length}</b> Maschinen. Einträge mit gleicher ID werden überschrieben, alles andere bleibt erhalten.
+        <div class="row" style="margin-top:10px"><button class="btn primary" data-act="import-go">Importieren</button><button class="btn" data-act="import-cancel">Abbrechen</button></div></div>` : ""}
+      <p class="small muted" style="margin-top:12px">${S.mode === "db" ? "Ein Backup lässt sich auch in die Offline-Datei „Instandhaltungs-Audit.html“ laden und umgekehrt." : "Mit dem Backup ziehst du deine Audits auf ein anderes Gerät oder in die Online-Version um."}</p></div>
+    <div class="card"><div class="card-head"><h2>Inhalt der Vorlage</h2><span class="hint">Vorlage_Audit_Instandhaltung.xlsm</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Blatt</th><th>Verwendet als</th><th class="num">Punkte</th></tr></thead><tbody>
+        ${TYPE_ORDER.map(t => `<tr><td class="num">${h(CHECKLISTS[t].sheet)}</td><td>Checkliste „${h(CHECKLISTS[t].name)}“</td><td class="num">${items(t).length}</td></tr>`).join("")}
+        <tr><td>Checkliste_Maschine_Daten</td><td>Maschinen-Stammblatt</td><td class="num">${MFIELDS.length}</td></tr>
+        <tr><td>Checkliste_Maschine_Schweiß_dre, _div, _Schweiß (2)</td><td>Ausgefüllte Stammblätter (3 Maschinen)</td><td class="num">–</td></tr>
+      </tbody></table></div>
+      ${S.readOnly ? "" : `<div class="row" style="margin-top:12px"><button class="btn" data-act="seed-machines">Maschinen aus der Vorlage (erneut) übernehmen</button></div>`}</div>
+  </div>`;
+}
+
+/* ============================================================
+   Aktionen
+   ============================================================ */
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(timers.toast); timers.toast = setTimeout(() => t.hidden = true, 2600);
+}
+function curAudit() { return S.audits[S.auditId]; }
+function updateAuditParts(a, itemId) {
+  const it = items(a.type).find(i => i.id === itemId);
+  const el = document.getElementById("it-" + itemId);
+  if (el && it) { el.outerHTML = itemHtml(a, it); const n = document.getElementById("it-" + itemId); n && n.querySelectorAll("textarea").forEach(autoGrow); }
+  refreshScores(a);
+}
+function refreshScores(a) {
+  const s = document.getElementById("summary"); if (s) s.innerHTML = summaryHtml(a);
+  CHECKLISTS[a.type].cats.forEach(c => { const e = document.querySelector(`[data-cat-score="${c.id}"]`); if (e) { const r = score(a, c.id); e.textContent = `${r.total - r.open}/${r.total} · ${pctTxt(r.pct)}`; } });
+  renderNav();
+}
+
+async function offerFile(name, data, mime) {
+  try {
+    const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
+    if (dl) { await dl.save({ filename: name, data }); toast("Datei gespeichert"); return; }
+  } catch (e) {
+    if (e && e.code === "declined") return;
+  }
+  try {
+    const url = URL.createObjectURL(new Blob([data], { type: mime }));
+    const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch (e) { toast("Speichern ist hier nicht möglich."); }
+}
+function csvCell(v) { v = String(v == null ? "" : v); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function reportText(a) {
+  const c = CHECKLISTS[a.type], r = score(a);
+  const lines = [`Audit-Checkliste: ${c.name}`, `Objekt: ${auditTitle(a)}${a.equip ? " (Equipment " + a.equip + ")" : ""}`, `Datum: ${fmtDate(a.date)} · Auditor: ${a.auditor || "–"}`,
+    `Erfüllungsgrad: ${pctTxt(r.pct)} (N.I.O ${r.nio}, bed. OK ${r.bed}, OK ${r.ok}, n. b. ${r.na}, offen ${r.open})`, ""];
+  c.cats.forEach(cat => { const s = score(a, cat.id); lines.push(`${cat.name}: ${pctTxt(s.pct)}`); });
+  const acts = actions().filter(x => x.audit.id === a.id);
+  if (acts.length) { lines.push("", "Maßnahmen:"); acts.forEach(x => lines.push(`- [${x.item.nr}] ${x.ans.note || "(ohne Text)"} · ${x.ans.resp || "–"} · ${fmtDate(x.ans.due)} · ${x.status}`)); }
+  return lines.join("\n");
+}
+
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const act = el.dataset.act;
+  if (el.tagName === "A") e.preventDefault();
+  const a = curAudit();
+  if (act !== "del-audit" && act !== "del-machine" && S.confirm) { S.confirm = null; }
+  switch (act) {
+    case "nav": go(el.dataset.v, el.dataset.v === "new" ? { newFor: null } : null); break;
+    case "start-type": S.newType = el.dataset.v; go("new", { newFor: null }); break;
+    case "pick-type": {
+      const keep = { title: val("nf-title"), equip: val("nf-equip"), date: val("nf-date"), auditor: val("nf-auditor"), area: val("nf-area"), obj: val("nf-obj") };
+      S.newType = el.dataset.v; render();
+      ["title", "equip", "date", "auditor", "area", "obj"].forEach(k => { const f = document.getElementById("nf-" + k); if (f && keep[k]) f.value = keep[k]; });
+      break;
+    }
+    case "open-audit": {
+      const it = el.dataset.item;
+      go("audit", { auditId: el.dataset.id });
+      if (it) setTimeout(() => { const n = document.getElementById("it-" + it); if (n) { n.scrollIntoView({ block: "center" }); const t = n.querySelector("textarea"); t && t.focus({ preventScroll: true }); } }, 30);
+      break;
+    }
+    case "rate": {
+      if (!a || S.readOnly) break;
+      const id = el.closest(".item").dataset.item;
+      a.answers = a.answers || {};
+      const x = a.answers[id] = a.answers[id] || {};
+      x.r = x.r === el.dataset.v ? null : el.dataset.v;
+      persist("audits", a);
+      updateAuditParts(a, id);
+      break;
+    }
+    case "toggle-en": S.showEn = el.checked; render(); break;
+    case "toggle-status": if (a) { a.status = a.status === "abgeschlossen" ? "in Arbeit" : "abgeschlossen"; persist("audits", a); render(); toast(a.status === "abgeschlossen" ? "Audit abgeschlossen" : "Audit wieder geöffnet"); } break;
+    case "report": go("report"); break;
+    case "print": window.print(); break;
+    case "copy-report": {
+      const txt = reportText(a);
+      const fallback = () => { const t = document.createElement("textarea"); t.value = txt; t.style.cssText = "position:fixed;left:16px;right:16px;bottom:100px;height:40vh;z-index:70"; document.body.appendChild(t); t.select(); toast("Text markiert – jetzt kopieren"); t.addEventListener("blur", () => t.remove()); };
+      try { navigator.clipboard.writeText(txt).then(() => toast("Zusammenfassung kopiert"), fallback); } catch (err) { fallback(); }
+      break;
+    }
+    case "del-audit":
+      if (S.confirm === "del-" + a.id) { delete S.audits[a.id]; removeDoc("audits", a.id); toast("Audit gelöscht"); go("audits"); }
+      else { S.confirm = "del-" + a.id; render(); }
+      break;
+    case "act-filter": S.actFilter = el.dataset.v; render(); break;
+    case "act-done": {
+      const au = S.audits[el.dataset.id]; if (!au || S.readOnly) break;
+      const x = au.answers[el.dataset.item]; x.done = el.checked; persist("audits", au); render(); break;
+    }
+    case "new-machine": {
+      const m = { id: uid("m-"), name: "", equip: "", fields: {}, created: new Date().toISOString() };
+      S.machines[m.id] = m; persist("machines", m); go("machine", { machineId: m.id }); break;
+    }
+    case "open-machine": go("machine", { machineId: el.dataset.id }); break;
+    case "audit-for": S.newType = el.dataset.v; go("new", { newFor: S.machineId }); break;
+    case "del-machine": {
+      const m = S.machines[S.machineId];
+      if (S.confirm === "delm-" + m.id) { delete S.machines[m.id]; removeDoc("machines", m.id); toast("Maschine gelöscht"); go("machines"); }
+      else { S.confirm = "delm-" + m.id; render(); }
+      break;
+    }
+    case "seed-machines": {
+      TEMPLATE_MACHINES.forEach(m => { if (!S.machines[m.id]) { S.machines[m.id] = clone(m); persist("machines", S.machines[m.id]); } });
+      toast("Maschinen aus der Vorlage übernommen"); render(); break;
+    }
+    case "export-json": {
+      const data = JSON.stringify({ app: "IH-Audit", version: 1, exported: new Date().toISOString(), settings: S.settings, audits: Object.values(S.audits), machines: Object.values(S.machines) }, null, 2);
+      offerFile(`IH-Audit-Backup-${todayISO()}.json`, data, "application/json"); break;
+    }
+    case "export-csv": {
+      const rows = [["Status", "Befund / Maßnahme", "Nr.", "Prüfpunkt", "Checkliste", "Objekt", "Auditdatum", "Verantwortlich", "Termin", "Bewertung"]];
+      actions().forEach(x => rows.push([{ offen: "offen", ueberfaellig: "überfällig", erledigt: "erledigt" }[x.status], x.ans.note, x.item.nr, x.item.de, CHECKLISTS[x.audit.type].name, auditTitle(x.audit), fmtDate(x.audit.date), x.ans.resp, fmtDate(x.ans.due), x.ans.r === "nio" ? "N.I.O" : "bed. OK"]));
+      offerFile(`IH-Massnahmen-${todayISO()}.csv`, "﻿" + rows.map(r => r.map(csvCell).join(";")).join("\r\n"), "text/csv"); break;
+    }
+    case "import": document.getElementById("importFile").click(); break;
+    case "import-cancel": S.importData = null; render(); break;
+    case "import-go": {
+      const d = S.importData; if (!d) break;
+      d.machines.forEach(m => { S.machines[m.id] = m; persist("machines", m); });
+      d.audits.forEach(x => { if (CHECKLISTS[x.type]) { S.audits[x.id] = x; persist("audits", x); } });
+      if (d.settings) { S.settings = { ...DEFAULT_SETTINGS, ...d.settings }; saveSettings(); }
+      S.importData = null; toast("Backup importiert"); render(); break;
+    }
+  }
+});
+function val(id) { const e = document.getElementById(id); return e ? e.value : ""; }
+
+document.addEventListener("submit", e => {
+  if (e.target.id !== "newForm") return;
+  e.preventDefault();
+  if (S.readOnly) return;
+  const obj = val("nf-obj");
+  const a = { id: uid("a-"), type: S.newType, title: val("nf-title").trim(), equip: val("nf-equip").trim(), objectId: obj || (S.newFor && S.newType !== "werkzeug" ? S.newFor : ""),
+    date: val("nf-date") || todayISO(), auditor: val("nf-auditor").trim(), area: val("nf-area").trim(), status: "in Arbeit", answers: {}, created: new Date().toISOString() };
+  if (!a.title && a.objectId && S.machines[a.objectId]) a.title = S.machines[a.objectId].name;
+  S.audits[a.id] = a; persist("audits", a);
+  go("audit", { auditId: a.id });
+});
+
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.tagName === "TEXTAREA") autoGrow(t);
+  if (S.readOnly) return;
+  const a = curAudit();
+  if (t.dataset.f && a && S.view === "audit") {
+    const id = t.closest(".item").dataset.item;
+    a.answers = a.answers || {};
+    const x = a.answers[id] = a.answers[id] || {};
+    x[t.dataset.f] = t.type === "checkbox" ? t.checked : t.value;
+    persist("audits", a, true);
+    if (t.dataset.f === "done" || t.dataset.f === "due") renderNav();
+  } else if (t.dataset.m && a) {
+    a[t.dataset.m] = t.value; persist("audits", a, true);
+  } else if (t.dataset.mf || t.dataset.mm) {
+    const m = S.machines[S.machineId]; if (!m) return;
+    if (t.dataset.mm) m[t.dataset.mm] = t.value;
+    else { m.fields = m.fields || {}; const f = m.fields[t.dataset.mf] = m.fields[t.dataset.mf] || {}; f[t.dataset.k] = t.value; }
+    persist("machines", m, true);
+  } else if (t.id && t.id.startsWith("st-")) {
+    const map = { "st-company": "company", "st-bed": "bedWeight", "st-green": "green", "st-yellow": "yellow" };
+    const k = map[t.id]; if (!k) return;
+    S.settings[k] = k === "company" ? t.value : Math.max(0, Math.min(100, Number(t.value) || 0));
+    clearTimeout(timers.st); timers.st = setTimeout(saveSettings, 600);
+  } else if (t.id && t.id.startsWith("c-")) calc();
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.f === "done") { const a = curAudit(); if (a) refreshScores(a); }
+  if (t.id === "nf-obj") {
+    const m = S.machines[t.value]; const ti = document.getElementById("nf-title"), eq = document.getElementById("nf-equip");
+    if (m && ti) ti.value = m.name || ""; if (m && eq) eq.value = m.equip || "";
+  }
+});
+document.getElementById("importFile").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const d = JSON.parse(rd.result);
+      if (!Array.isArray(d.audits) || !Array.isArray(d.machines)) throw new Error("format");
+      S.importData = d; render();
+    } catch (err) { toast("Die Datei ist kein gültiges IH-Audit-Backup."); }
+    e.target.value = "";
+  };
+  rd.readAsText(f);
+});
+
+/* Kennzahlen-Rechner */
+function calc() {
+  const n = id => Number(val(id));
+  const o1 = document.getElementById("c-out1"), o2 = document.getElementById("c-out2");
+  if (!o1) return;
+  const bz = n("c-bz"), cnt = n("c-n"), rz = n("c-rz");
+  const mtbf = cnt > 0 ? bz / cnt : null, mttr = cnt > 0 ? rz / cnt : null;
+  const av = mtbf != null && (mtbf + mttr) > 0 ? mtbf / (mtbf + mttr) * 100 : null;
+  const f = (v, u, d) => v == null || !isFinite(v) ? "–" : v.toLocaleString("de-DE", { maximumFractionDigits: d }) + u;
+  o1.innerHTML = `<div class="tile"><span class="lbl">MTBF</span><span class="calc-out">${f(mtbf, " h", 1)}</span></div>
+    <div class="tile"><span class="lbl">MTTR</span><span class="calc-out">${f(mttr, " h", 1)}</span></div>
+    <div class="tile"><span class="lbl">Techn. Verfügbarkeit</span><span class="calc-out">${f(av, " %", 1)}</span></div>`;
+  const oee = n("c-v") * n("c-l") * n("c-q") / 10000;
+  o2.innerHTML = `<div class="tile"><span class="lbl">OEE = V × L × Q</span><span class="calc-out">${f(oee, " %", 1)}</span></div>`;
+}
+
+/* Tooltip */
+const tip = document.getElementById("tip");
+document.addEventListener("pointerover", e => {
+  const t = e.target.closest && e.target.closest("[data-tip]");
+  if (!t) { tip.hidden = true; return; }
+  tip.textContent = t.getAttribute("data-tip"); tip.hidden = false;
+});
+document.addEventListener("pointermove", e => {
+  if (tip.hidden) return;
+  const w = tip.offsetWidth, x = Math.min(e.clientX + 14, window.innerWidth - w - 8);
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = (e.clientY + 16) + "px";
+});
+document.addEventListener("pointerout", e => { if (e.target.closest && e.target.closest("[data-tip]") && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest("[data-tip]"))) tip.hidden = true; });
+window.addEventListener("scroll", () => { tip.hidden = true; }, { passive: true });
+
+/* Start */
+(function start() {
+  try {
+    const ui = JSON.parse(lsGet(LS_UI) || "{}");
+    if (ui.view && !["new", "report"].includes(ui.view)) { S.view = ui.view; S.auditId = ui.auditId; S.machineId = ui.machineId; }
+  } catch (e) {}
+  const hash = (location.hash || "").slice(1);
+  if (NAV.some(n => n[0] === hash)) S.view = hash;
+  const obs = new MutationObserver(() => calc());
+  obs.observe(document.getElementById("main"), { childList: true });
+  if (window.claude && typeof window.claude.use === "function") {
+    render();
+    initDb().then(ok => { if (!ok) { S.mode = "local"; loadLocal(); S.ready = true; render(); } });
+  } else {
+    loadLocal(); S.ready = true; render();
+  }
+})();
+</script>
+
+</body>
+</html>
