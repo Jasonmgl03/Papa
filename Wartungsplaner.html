@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wartungsplaner</title>
+<style id="page-style"></style>
+<style>
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #1d4ed8;
+  --primary-hover: #1e40af;
+  --primary-soft: #dbeafe;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --ok: #15803d;
+  --ok-soft: #dcfce7;
+  --sidebar: #0f172a;
+  --sidebar-text: #cbd5e1;
+  --shadow: 0 1px 2px rgba(15,23,42,.06), 0 4px 16px rgba(15,23,42,.06);
+  --radius: 12px;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0b1120;
+  --surface: #111827;
+  --surface-2: #1a2333;
+  --border: #263247;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-soft: #1e3a8a55;
+  --danger: #f87171;
+  --danger-soft: #7f1d1d55;
+  --warn: #fbbf24;
+  --warn-soft: #78350f55;
+  --ok: #4ade80;
+  --ok-soft: #14532d55;
+  --sidebar: #020617;
+  --sidebar-text: #94a3b8;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+.app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.sidebar { background: var(--sidebar); color: var(--sidebar-text); padding: 20px 14px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; }
+.brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 17px; padding: 4px 10px 20px; }
+.brand-logo { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: grid; place-items: center; }
+.brand-logo svg { stroke: #fff; }
+.nav-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; background: transparent; border-radius: 8px; cursor: pointer; text-align: left; color: inherit; }
+.nav-btn:hover { background: rgba(255,255,255,.06); color: #fff; }
+.nav-btn.active { background: #1d4ed8; color: #fff; }
+.nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 7px; }
+.sidebar-foot { margin-top: auto; padding: 10px; font-size: 12px; color: #64748b; }
+.sidebar-foot button { margin-bottom: 10px; }
+
+.main { padding: 28px 32px 60px; min-width: 0; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+.page-head h1 { margin: 0; font-size: 24px; letter-spacing: -.01em; }
+.page-head p { margin: 4px 0 0; color: var(--muted); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 500; white-space: nowrap; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn.primary:hover { background: var(--primary-hover); }
+.btn.danger { color: var(--danger); }
+.btn.danger:hover { background: var(--danger-soft); }
+.btn.sm { padding: 5px 9px; font-size: 13px; }
+.btn.icon { padding: 6px; }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.ghost:hover { background: var(--surface-2); }
+.btn.success { color: var(--ok); }
+.btn.success:hover { background: var(--ok-soft); }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+.card-head h2 { margin: 0; font-size: 15px; }
+.card-body { padding: 16px 18px; }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
+.stat { padding: 18px; display: flex; gap: 14px; align-items: center; }
+.stat-ico { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; flex: none; }
+.stat-ico svg { width: 22px; height: 22px; }
+.stat b { display: block; font-size: 26px; line-height: 1.1; }
+.stat span { color: var(--muted); font-size: 13px; }
+.tone-blue { background: var(--primary-soft); color: var(--primary); }
+.tone-red { background: var(--danger-soft); color: var(--danger); }
+.tone-yellow { background: var(--warn-soft); color: var(--warn); }
+.tone-green { background: var(--ok-soft); color: var(--ok); }
+
+.grid-2 { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; }
+
+.table-wrap { overflow-x: auto; }
+table.t { width: 100%; border-collapse: collapse; }
+table.t th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--border); background: var(--surface-2); white-space: nowrap; }
+table.t td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+table.t tr:last-child td { border-bottom: 0; }
+table.t tbody tr:hover td { background: var(--surface-2); }
+td.nowrap, th.nowrap { white-space: nowrap; }
+td.right, th.right { text-align: right; }
+.sub { color: var(--muted); font-size: 12px; }
+.link { color: var(--primary); cursor: pointer; background: none; border: 0; padding: 0; font-weight: 600; text-align: left; }
+.link:hover { text-decoration: underline; }
+
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.badge.overdue { background: var(--danger-soft); color: var(--danger); }
+.badge.soon { background: var(--warn-soft); color: var(--warn); }
+.badge.ok { background: var(--ok-soft); color: var(--ok); }
+.badge.none { background: var(--surface-2); color: var(--muted); }
+.chip { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); }
+
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; padding: 14px 18px; border-bottom: 1px solid var(--border); align-items: center; }
+.input, select.input, textarea.input { padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); min-width: 0; }
+.input:focus { outline: 2px solid var(--primary); outline-offset: -1px; border-color: transparent; }
+.search { position: relative; flex: 1 1 220px; }
+.search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); width: 16px; height: 16px; }
+.search input { width: 100%; padding-left: 34px; }
+
+.machines { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+.m-card { padding: 18px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: transform .12s, box-shadow .12s; border-top: 4px solid var(--border); }
+.m-card:hover { transform: translateY(-2px); }
+.m-card.overdue { border-top-color: var(--danger); }
+.m-card.soon { border-top-color: var(--warn); }
+.m-card.ok { border-top-color: var(--ok); }
+.m-card h3 { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
+.m-card-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.m-card-top > div { min-width: 0; }
+.m-meta { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 13px; }
+.m-meta dt { color: var(--muted); }
+.m-meta dd { margin: 0; }
+.m-foot { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); font-size: 13px; }
+
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--border); }
+.list li:last-child { border-bottom: 0; }
+.list .grow { flex: 1; min-width: 0; }
+.list .title { font-weight: 600; }
+
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty svg { width: 42px; height: 42px; margin-bottom: 10px; opacity: .6; }
+.empty h3 { color: var(--text); margin: 0 0 6px; }
+.empty .actions { justify-content: center; margin-top: 16px; }
+
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px 20px; }
+.detail-grid dt { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.detail-grid dd { margin: 2px 0 0; font-weight: 500; }
+
+.yp td, .yp th { text-align: center; padding: 8px 6px; }
+.yp td:nth-child(-n+3), .yp th:nth-child(-n+3) { text-align: left; }
+.yp .cur { background: var(--primary-soft) !important; }
+.mark { display: inline-block; min-width: 26px; padding: 2px 5px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.mark.plan { background: var(--primary-soft); color: var(--primary); }
+.mark.done { background: var(--ok-soft); color: var(--ok); }
+.mark.late { background: var(--danger-soft); color: var(--danger); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); padding: 12px 18px; border-top: 1px solid var(--border); }
+
+.data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.data-grid .card-body p { color: var(--muted); margin: 0 0 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.field label { font-size: 13px; font-weight: 600; }
+.field .hint { font-size: 12px; color: var(--muted); }
+
+dialog { border: 0; padding: 0; border-radius: 14px; background: var(--surface); color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.3); width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 32px); }
+dialog::backdrop { background: rgba(15,23,42,.5); backdrop-filter: blur(2px); }
+dialog form { display: flex; flex-direction: column; max-height: calc(100vh - 32px); }
+.dlg-head { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.dlg-head h2 { margin: 0; font-size: 18px; }
+.dlg-body { padding: 18px 22px; overflow-y: auto; }
+.dlg-foot { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; background: var(--surface-2); border-radius: 0 0 14px 14px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.form-grid .full { grid-column: 1 / -1; }
+.field .input { width: 100%; }
+.row { display: flex; gap: 8px; }
+
+.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: #fff; padding: 10px 18px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.25); opacity: 0; transition: .2s; pointer-events: none; z-index: 100; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+#print { display: none; }
+
+@media (max-width: 1100px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; padding: 10px 16px; gap: 2px; }
+  .brand { width: 100%; padding: 4px 4px 8px; }
+  .nav-btn { width: auto; padding: 8px 10px; }
+  .nav-btn span.lbl { display: none; }
+  .sidebar-foot { display: none; }
+  .main { padding: 18px 16px 50px; }
+  .stats { gap: 10px; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- Druck ---------- */
+@media print {
+  body { background: #fff; color: #000; font-size: 10.5pt; }
+  .app, dialog, .toast { display: none !important; }
+  #print { display: block; }
+}
+.p-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #1f2937; padding-bottom: 8px; margin-bottom: 14px; }
+.p-head h1 { margin: 0; font-size: 18pt; }
+.p-head .p-meta { text-align: right; font-size: 9pt; color: #374151; }
+.p-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.p-table th, .p-table td { border: 1px solid #9ca3af; padding: 5px 7px; text-align: left; vertical-align: top; }
+.p-table th { background: #e5e7eb; font-size: 9pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.p-table tr { break-inside: avoid; }
+.p-table td.nw { white-space: nowrap; }
+.p-table.yp-print th, .p-table.yp-print td { text-align: center; padding: 4px 3px; font-size: 9pt; }
+.p-table.yp-print td:nth-child(-n+3), .p-table.yp-print th:nth-child(-n+3) { text-align: left; }
+.p-st { font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.p-st.overdue { background: #fde2e2; }
+.p-st.soon { background: #fef3c7; }
+.p-st.ok { background: #dcfce7; }
+.p-plan { background: #dbeafe; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.p-done { background: #dcfce7; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.p-section { font-size: 12pt; margin: 18px 0 8px; }
+.p-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 16px; margin-bottom: 14px; font-size: 10pt; }
+.p-info b { display: block; font-size: 8pt; color: #4b5563; text-transform: uppercase; }
+.p-blank td { height: 26px; }
+.p-sign { display: flex; gap: 40px; margin-top: 30px; font-size: 9pt; }
+.p-sign div { flex: 1; border-top: 1px solid #000; padding-top: 4px; }
+.p-break { break-before: page; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-logo"><svg class="i"><use href="#i-wrench"/></svg></div>Wartungsplaner</div>
+    <button class="nav-btn" data-action="nav" data-view="dashboard"><svg class="i"><use href="#i-home"/></svg><span class="lbl">Übersicht</span></button>
+    <button class="nav-btn" data-action="nav" data-view="machines"><svg class="i"><use href="#i-box"/></svg><span class="lbl">Maschinen &amp; Werkzeuge</span></button>
+    <button class="nav-btn" data-action="nav" data-view="plan"><svg class="i"><use href="#i-list"/></svg><span class="lbl">Wartungsplan</span><span class="nav-badge" id="nav-overdue" hidden></span></button>
+    <button class="nav-btn" data-action="nav" data-view="year"><svg class="i"><use href="#i-calendar"/></svg><span class="lbl">Jahresplan</span></button>
+    <button class="nav-btn" data-action="nav" data-view="history"><svg class="i"><use href="#i-history"/></svg><span class="lbl">Historie</span></button>
+    <button class="nav-btn" data-action="nav" data-view="data"><svg class="i"><use href="#i-database"/></svg><span class="lbl">Export &amp; Daten</span></button>
+    <div class="sidebar-foot">
+      <button class="nav-btn" data-action="theme"><svg class="i"><use href="#i-moon"/></svg><span class="lbl">Hell / Dunkel</span></button>
+      Alle Daten bleiben lokal in diesem Browser. Regelmäßig unter „Export &amp; Daten“ sichern.
+    </div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<div id="print"></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="file-import" accept=".json,application/json" hidden>
+
+<dialog id="dlg">
+  <form id="dlg-form" method="dialog" autocomplete="off">
+    <div class="dlg-head"><h2 id="dlg-title"></h2><button class="btn ghost icon" value="cancel" formnovalidate aria-label="Schließen"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="dlg-body" id="dlg-body"></div>
+    <div class="dlg-foot"><button class="btn" value="cancel" formnovalidate>Abbrechen</button><button class="btn primary" value="ok" id="dlg-ok">Speichern</button></div>
+  </form>
+</dialog>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></symbol>
+  <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-printer" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-sheet" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M10 9H8"/></symbol>
+</svg>
+
+<script>
+'use strict';
+
+/* =========================================================
+   Daten & Speicher
+   ========================================================= */
+const STORAGE_KEY = 'wartungsplaner.v1';
+const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+const TYPES = ['Maschine', 'Werkzeug', 'Anlage', 'Fahrzeug', 'Messmittel', 'Sonstiges'];
+const UNITS = { tage: 'Tag(e)', wochen: 'Woche(n)', monate: 'Monat(e)', jahre: 'Jahr(e)' };
+const TASK_SUGGESTIONS = ['Sichtprüfung', 'Reinigung', 'Schmierung / Abschmieren', 'Ölwechsel', 'Ölstand prüfen', 'Filterwechsel', 'Keilriemen prüfen', 'Sicherheitseinrichtungen prüfen', 'Not-Aus prüfen', 'Elektrische Prüfung (DGUV V3)', 'UVV-Prüfung', 'Kalibrierung', 'Kondensat ablassen', 'Akkus prüfen', 'Schärfen / Klingen wechseln', 'Kühlschmierstoff prüfen', 'Hydraulik prüfen', 'Reifen / Bremsen prüfen'];
+
+let db = load();
+
+function emptyDb() {
+  return { machines: [], tasks: [], history: [], settings: { company: '', warnDays: 14 } };
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return normalize(JSON.parse(raw));
+  } catch (e) { console.warn(e); }
+  return emptyDb();
+}
+function normalize(d) {
+  const base = emptyDb();
+  return {
+    machines: Array.isArray(d.machines) ? d.machines : [],
+    tasks: Array.isArray(d.tasks) ? d.tasks : [],
+    history: Array.isArray(d.history) ? d.history : [],
+    settings: Object.assign(base.settings, d.settings || {})
+  };
+}
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+  catch (e) { alert('Speichern im Browser fehlgeschlagen. Bitte ein Backup unter „Export & Daten“ erstellen.'); }
+}
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+/* =========================================================
+   Hilfsfunktionen
+   ========================================================= */
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ic = (name) => `<svg class="i"><use href="#i-${name}"/></svg>`;
+const pad = (n) => String(n).padStart(2, '0');
+
+function parseISO(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function toISO(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+function todayISO() { return toISO(new Date()); }
+function fmt(iso) { if (!iso) return '–'; const [y, m, d] = iso.split('-'); return `${d}.${m}.${y}`; }
+function daysBetween(a, b) { return Math.round((parseISO(b) - parseISO(a)) / 86400000); }
+
+function addInterval(iso, n, unit) {
+  const d = parseISO(iso);
+  if (unit === 'tage') d.setDate(d.getDate() + n);
+  else if (unit === 'wochen') d.setDate(d.getDate() + 7 * n);
+  else {
+    const months = unit === 'jahre' ? 12 * n : n;
+    const day = d.getDate();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + months);
+    const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    d.setDate(Math.min(day, last));
+  }
+  return toISO(d);
+}
+
+function intervalLabel(t) {
+  const n = Number(t.intervalValue), u = t.intervalUnit;
+  if (n === 1) return { tage: 'täglich', wochen: 'wöchentlich', monate: 'monatlich', jahre: 'jährlich' }[u];
+  if (n === 3 && u === 'monate') return 'vierteljährlich';
+  if (n === 6 && u === 'monate') return 'halbjährlich';
+  return `alle ${n} ${{ tage: 'Tage', wochen: 'Wochen', monate: 'Monate', jahre: 'Jahre' }[u]}`;
+}
+
+function nextDue(t) { return t.lastDone ? addInterval(t.lastDone, Number(t.intervalValue), t.intervalUnit) : (t.firstDue || todayISO()); }
+function taskStatus(t) {
+  const days = daysBetween(todayISO(), nextDue(t));
+  if (days < 0) return 'overdue';
+  if (days <= Number(db.settings.warnDays || 14)) return 'soon';
+  return 'ok';
+}
+const STATUS_LABEL = { overdue: 'Überfällig', soon: 'Bald fällig', ok: 'In Ordnung', none: 'Keine Aufgaben' };
+const STATUS_RANK = { overdue: 0, soon: 1, ok: 2, none: 3 };
+function badge(st) { return `<span class="badge ${st}">${STATUS_LABEL[st]}</span>`; }
+function dueText(t) {
+  const d = daysBetween(todayISO(), nextDue(t));
+  if (d < 0) return `seit ${-d} Tag${d === -1 ? '' : 'en'} überfällig`;
+  if (d === 0) return 'heute fällig';
+  if (d === 1) return 'morgen fällig';
+  return `in ${d} Tagen`;
+}
+
+const machineById = (id) => db.machines.find(m => m.id === id);
+const taskById = (id) => db.tasks.find(t => t.id === id);
+const tasksOf = (mid) => db.tasks.filter(t => t.machineId === mid);
+function machineStatus(mid) {
+  const ts = tasksOf(mid);
+  if (!ts.length) return 'none';
+  return ts.map(taskStatus).sort((a, b) => STATUS_RANK[a] - STATUS_RANK[b])[0];
+}
+function sortedTasks(list = db.tasks) {
+  return [...list].sort((a, b) => nextDue(a).localeCompare(nextDue(b)));
+}
+function machineName(id) { const m = machineById(id); return m ? m.name : '(gelöscht)'; }
+
+/* Termine eines Jahres für eine Aufgabe (geplant) */
+function occurrencesInYear(t, year) {
+  const n = Number(t.intervalValue), u = t.intervalUnit;
+  const base = t.lastDone || null;
+  const out = [];
+  for (let k = base ? 1 : 0; k < 2000; k++) {
+    const d = base ? addInterval(base, n * k, u) : addInterval(t.firstDue || todayISO(), n * k, u);
+    const y = Number(d.slice(0, 4));
+    if (y > year) break;
+    if (y === year) out.push(d);
+  }
+  return out;
+}
+function yearMatrix(t, year) {
+  const plan = Array(12).fill(0), done = Array(12).fill(0);
+  occurrencesInYear(t, year).forEach(d => plan[Number(d.slice(5, 7)) - 1]++);
+  db.history.filter(h => h.taskId === t.id && h.date.startsWith(String(year))).forEach(h => done[Number(h.date.slice(5, 7)) - 1]++);
+  return { plan, done };
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+function download(name, blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* =========================================================
+   Zustand & Rendering
+   ========================================================= */
+const ui = {
+  view: 'dashboard',
+  machineId: null,
+  mq: '', mtype: '',
+  pq: '', pmachine: '', pstatus: '', prange: '',
+  year: new Date().getFullYear(), ymachine: '',
+  hmachine: ''
+};
+
+function render() {
+  const main = document.getElementById('main');
+  const focus = document.activeElement && document.activeElement.id ? { id: document.activeElement.id, pos: document.activeElement.selectionStart } : null;
+  main.innerHTML = (VIEWS[ui.view] || VIEWS.dashboard)();
+  document.querySelectorAll('.nav-btn[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === ui.view || (ui.view === 'machine' && b.dataset.view === 'machines')));
+  const overdue = db.tasks.filter(t => taskStatus(t) === 'overdue').length;
+  const nb = document.getElementById('nav-overdue');
+  nb.hidden = !overdue; nb.textContent = overdue;
+  if (focus) {
+    const el = document.getElementById(focus.id);
+    if (el) { el.focus(); if (focus.pos != null && el.setSelectionRange) try { el.setSelectionRange(focus.pos, focus.pos); } catch (e) {} }
+  }
+}
+
+function emptyState(title, text, buttons = '') {
+  return `<div class="empty">${ic('box')}<h3>${esc(title)}</h3><div>${esc(text)}</div>${buttons ? `<div class="actions">${buttons}</div>` : ''}</div>`;
+}
+
+function taskRowActions(t) {
+  return `<div class="row" style="justify-content:flex-end">
+    <button class="btn sm success" data-action="done" data-id="${t.id}" title="Als erledigt markieren">${ic('check')}Erledigt</button>
+    <button class="btn sm icon ghost" data-action="edit-task" data-id="${t.id}" title="Bearbeiten">${ic('edit')}</button>
+    <button class="btn sm icon ghost danger" data-action="delete-task" data-id="${t.id}" title="Löschen">${ic('trash')}</button>
+  </div>`;
+}
+
+const VIEWS = {
+  /* ---------- Übersicht ---------- */
+  dashboard() {
+    const tasks = db.tasks;
+    const counts = { overdue: 0, soon: 0, ok: 0 };
+    tasks.forEach(t => counts[taskStatus(t)]++);
+    const upcoming = sortedTasks(tasks).filter(t => daysBetween(todayISO(), nextDue(t)) <= 30).slice(0, 12);
+    const recent = [...db.history].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+
+    if (!db.machines.length) {
+      return `<div class="page-head"><div><h1>Willkommen 👋</h1><p>Erstelle Wartungspläne für deine Maschinen und Werkzeuge – komplett lokal.</p></div></div>
+      <div class="card">${emptyState('Noch keine Maschinen oder Werkzeuge', 'Lege dein erstes Objekt an oder lade Beispieldaten, um das Tool kennenzulernen.',
+        `<button class="btn primary" data-action="add-machine">${ic('plus')}Objekt anlegen</button><button class="btn" data-action="demo">Beispieldaten laden</button>`)}</div>`;
+    }
+
+    return `
+    <div class="page-head">
+      <div><h1>Übersicht</h1><p>Stand: ${fmt(todayISO())}${db.settings.company ? ' · ' + esc(db.settings.company) : ''}</p></div>
+      <div class="actions">
+        <button class="btn" data-action="print-plan">${ic('printer')}Plan drucken</button>
+        <button class="btn" data-action="export-xlsx">${ic('sheet')}Excel-Export</button>
+        <button class="btn primary" data-action="add-task">${ic('plus')}Wartungsaufgabe</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="card stat"><div class="stat-ico tone-blue">${ic('box')}</div><div><b>${db.machines.length}</b><span>Maschinen &amp; Werkzeuge</span></div></div>
+      <div class="card stat"><div class="stat-ico tone-red">${ic('alert')}</div><div><b>${counts.overdue}</b><span>Überfällig</span></div></div>
+      <div class="card stat"><div class="stat-ico tone-yellow">${ic('clock')}</div><div><b>${counts.soon}</b><span>Fällig in ≤ ${Number(db.settings.warnDays)} Tagen</span></div></div>
+      <div class="card stat"><div class="stat-ico tone-green">${ic('check')}</div><div><b>${counts.ok}</b><span>In Ordnung</span></div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h2>Überfällig &amp; nächste 30 Tage</h2><button class="btn sm" data-action="nav" data-view="plan">Alle anzeigen</button></div>
+        ${upcoming.length ? `<ul class="list">${upcoming.map(t => `
+          <li>
+            <div class="grow">
+              <div class="title">${esc(t.title)}</div>
+              <div class="sub"><button class="link" data-action="open-machine" data-id="${t.machineId}">${esc(machineName(t.machineId))}</button> · ${fmt(nextDue(t))} · ${dueText(t)}</div>
+            </div>
+            ${badge(taskStatus(t))}
+            <button class="btn sm success" data-action="done" data-id="${t.id}">${ic('check')}Erledigt</button>
+          </li>`).join('')}</ul>` : `<div class="empty" style="padding:30px">${ic('check')}<h3>Alles erledigt</h3><div>In den nächsten 30 Tagen steht nichts an.</div></div>`}
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Zuletzt erledigt</h2><button class="btn sm" data-action="nav" data-view="history">Historie</button></div>
+        ${recent.length ? `<ul class="list">${recent.map(h => {
+          const t = taskById(h.taskId);
+          return `<li><div class="stat-ico tone-green" style="width:32px;height:32px">${ic('check')}</div><div class="grow"><div class="title">${esc(t ? t.title : h.taskTitle || 'Aufgabe')}</div><div class="sub">${esc(machineName(h.machineId))} · ${fmt(h.date)}${h.by ? ' · ' + esc(h.by) : ''}</div></div></li>`;
+        }).join('')}</ul>` : `<div class="empty" style="padding:30px">Noch keine Wartungen erfasst.</div>`}
+      </div>
+    </div>`;
+  },
+
+  /* ---------- Maschinen-Liste ---------- */
+  machines() {
+    const q = ui.mq.toLowerCase();
+    const list = db.machines
+      .filter(m => !ui.mtype || m.type === ui.mtype)
+      .filter(m => !q || [m.name, m.inventory, m.location, m.manufacturer, m.model, m.serial].join(' ').toLowerCase().includes(q))
+      .sort((a, b) => STATUS_RANK[machineStatus(a.id)] - STATUS_RANK[machineStatus(b.id)] || a.name.localeCompare(b.name, 'de'));
+    return `
+    <div class="page-head">
+      <div><h1>Maschinen &amp; Werkzeuge</h1><p>${db.machines.length} Objekt${db.machines.length === 1 ? '' : 'e'} erfasst</p></div>
+      <div class="actions"><button class="btn primary" data-action="add-machine">${ic('plus')}Neues Objekt</button></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="toolbar" style="border:0">
+        <div class="search">${ic('search')}<input class="input" id="mq" data-bind="mq" placeholder="Suchen nach Name, Inventar-Nr., Standort …" value="${esc(ui.mq)}"></div>
+        <select class="input" id="mtype" data-bind="mtype"><option value="">Alle Typen</option>${TYPES.map(t => `<option ${ui.mtype === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+      </div>
+    </div>
+    ${list.length ? `<div class="machines">${list.map(m => {
+      const st = machineStatus(m.id);
+      const ts = sortedTasks(tasksOf(m.id));
+      return `<div class="card m-card ${st}" data-action="open-machine" data-id="${m.id}">
+        <div class="m-card-top">
+          <div><h3>${esc(m.name)}</h3><span class="chip">${esc(m.type || 'Sonstiges')}</span></div>
+          ${badge(st)}
+        </div>
+        <dl class="m-meta">
+          ${m.inventory ? `<dt>Inventar-Nr.</dt><dd>${esc(m.inventory)}</dd>` : ''}
+          ${m.location ? `<dt>Standort</dt><dd>${esc(m.location)}</dd>` : ''}
+          ${m.manufacturer || m.model ? `<dt>Hersteller</dt><dd>${esc([m.manufacturer, m.model].filter(Boolean).join(' '))}</dd>` : ''}
+        </dl>
+        <div class="m-foot"><span class="sub">${ts.length} Aufgabe${ts.length === 1 ? '' : 'n'}</span><span>${ts.length ? 'Nächste: <b>' + fmt(nextDue(ts[0])) + '</b>' : '<span class="sub">–</span>'}</span></div>
+      </div>`;
+    }).join('')}</div>` : `<div class="card">${db.machines.length ? emptyState('Keine Treffer', 'Passe Suche oder Filter an.') : emptyState('Noch keine Objekte', 'Lege deine erste Maschine oder dein erstes Werkzeug an.', `<button class="btn primary" data-action="add-machine">${ic('plus')}Objekt anlegen</button><button class="btn" data-action="demo">Beispieldaten laden</button>`)}</div>`}`;
+  },
+
+  /* ---------- Maschinen-Detail ---------- */
+  machine() {
+    const m = machineById(ui.machineId);
+    if (!m) { ui.view = 'machines'; return VIEWS.machines(); }
+    const ts = sortedTasks(tasksOf(m.id));
+    const hist = db.history.filter(h => h.machineId === m.id).sort((a, b) => b.date.localeCompare(a.date));
+    const info = [['Typ', m.type], ['Inventar-Nr.', m.inventory], ['Standort', m.location], ['Hersteller', m.manufacturer], ['Modell', m.model], ['Seriennummer', m.serial], ['Anschaffung', m.purchaseDate ? fmt(m.purchaseDate) : '']];
+    return `
+    <div class="page-head">
+      <div>
+        <button class="btn sm ghost" data-action="nav" data-view="machines" style="margin-bottom:8px">${ic('back')}Zurück</button>
+        <h1>${esc(m.name)} ${badge(machineStatus(m.id))}</h1>
+      </div>
+      <div class="actions">
+        <button class="btn" data-action="print-card" data-id="${m.id}">${ic('printer')}Wartungskarte drucken</button>
+        <button class="btn" data-action="edit-machine" data-id="${m.id}">${ic('edit')}Bearbeiten</button>
+        <button class="btn danger" data-action="delete-machine" data-id="${m.id}">${ic('trash')}Löschen</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px"><div class="card-body">
+      <dl class="detail-grid">${info.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v || '–')}</dd></div>`).join('')}</dl>
+      ${m.notes ? `<p style="margin:16px 0 0;white-space:pre-wrap">${esc(m.notes)}</p>` : ''}
+    </div></div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><h2>Wartungsaufgaben</h2><button class="btn sm primary" data-action="add-task" data-machine="${m.id}">${ic('plus')}Aufgabe hinzufügen</button></div>
+      ${ts.length ? `<div class="table-wrap"><table class="t"><thead><tr><th>Status</th><th>Aufgabe</th><th>Intervall</th><th>Zuletzt</th><th>Nächste Fälligkeit</th><th>Verantwortlich</th><th></th></tr></thead><tbody>
+        ${ts.map(t => `<tr>
+          <td>${badge(taskStatus(t))}</td>
+          <td><b>${esc(t.title)}</b>${t.notes ? `<div class="sub">${esc(t.notes)}</div>` : ''}</td>
+          <td class="nowrap">${intervalLabel(t)}</td>
+          <td class="nowrap">${fmt(t.lastDone)}</td>
+          <td class="nowrap"><b>${fmt(nextDue(t))}</b><div class="sub">${dueText(t)}</div></td>
+          <td>${esc(t.responsible || '–')}</td>
+          <td>${taskRowActions(t)}</td>
+        </tr>`).join('')}
+      </tbody></table></div>` : emptyState('Keine Aufgaben', 'Füge eine erste Wartungsaufgabe hinzu, z. B. „Sichtprüfung – monatlich“.', `<button class="btn primary" data-action="add-task" data-machine="${m.id}">${ic('plus')}Aufgabe hinzufügen</button>`)}
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Wartungshistorie</h2></div>
+      ${hist.length ? historyTable(hist, false) : `<div class="empty" style="padding:30px">Noch keine durchgeführten Wartungen.</div>`}
+    </div>`;
+  },
+
+  /* ---------- Wartungsplan ---------- */
+  plan() {
+    const list = filteredPlan();
+    return `
+    <div class="page-head">
+      <div><h1>Wartungsplan</h1><p>Alle Wartungsaufgaben sortiert nach Fälligkeit</p></div>
+      <div class="actions">
+        <button class="btn" data-action="print-plan">${ic('printer')}Drucken</button>
+        <button class="btn" data-action="export-xlsx">${ic('sheet')}Excel (.xlsx)</button>
+        <button class="btn" data-action="export-csv">${ic('download')}CSV</button>
+        <button class="btn primary" data-action="add-task">${ic('plus')}Aufgabe</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="toolbar">
+        <div class="search">${ic('search')}<input class="input" id="pq" data-bind="pq" placeholder="Aufgabe, Objekt oder Person suchen …" value="${esc(ui.pq)}"></div>
+        <select class="input" id="pmachine" data-bind="pmachine"><option value="">Alle Objekte</option>${machineOptions(ui.pmachine)}</select>
+        <select class="input" id="pstatus" data-bind="pstatus">
+          <option value="">Alle Status</option>
+          ${['overdue', 'soon', 'ok'].map(s => `<option value="${s}" ${ui.pstatus === s ? 'selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}
+        </select>
+        <select class="input" id="prange" data-bind="prange">
+          <option value="">Gesamter Zeitraum</option>
+          ${[[7, 'Nächste 7 Tage'], [30, 'Nächste 30 Tage'], [90, 'Nächste 90 Tage'], [365, 'Nächste 12 Monate']].map(([v, l]) => `<option value="${v}" ${ui.prange == v ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+      </div>
+      ${list.length ? `<div class="table-wrap"><table class="t"><thead><tr><th>Status</th><th>Fällig am</th><th>Objekt</th><th>Aufgabe</th><th>Intervall</th><th>Zuletzt</th><th>Verantwortlich</th><th></th></tr></thead><tbody>
+        ${list.map(t => { const m = machineById(t.machineId) || {}; return `<tr>
+          <td>${badge(taskStatus(t))}</td>
+          <td class="nowrap"><b>${fmt(nextDue(t))}</b><div class="sub">${dueText(t)}</div></td>
+          <td><button class="link" data-action="open-machine" data-id="${t.machineId}">${esc(m.name || '(gelöscht)')}</button>${m.inventory ? `<div class="sub">${esc(m.inventory)}</div>` : ''}</td>
+          <td><b>${esc(t.title)}</b>${t.notes ? `<div class="sub">${esc(t.notes)}</div>` : ''}</td>
+          <td class="nowrap">${intervalLabel(t)}</td>
+          <td class="nowrap">${fmt(t.lastDone)}</td>
+          <td>${esc(t.responsible || '–')}</td>
+          <td>${taskRowActions(t)}</td>
+        </tr>`; }).join('')}
+      </tbody></table></div>` : (db.tasks.length ? emptyState('Keine Treffer', 'Für diese Filter gibt es keine Aufgaben.') : emptyState('Noch keine Wartungsaufgaben', db.machines.length ? 'Lege die erste Aufgabe an.' : 'Lege zuerst eine Maschine oder ein Werkzeug an.', db.machines.length ? `<button class="btn primary" data-action="add-task">${ic('plus')}Aufgabe anlegen</button>` : `<button class="btn primary" data-action="add-machine">${ic('plus')}Objekt anlegen</button><button class="btn" data-action="demo">Beispieldaten laden</button>`))}
+    </div>`;
+  },
+
+  /* ---------- Jahresplan ---------- */
+  year() {
+    const tasks = yearTasks();
+    const now = new Date();
+    const curMonth = now.getFullYear() === ui.year ? now.getMonth() : -1;
+    const today = todayISO();
+    return `
+    <div class="page-head">
+      <div><h1>Jahresplan ${ui.year}</h1><p>Geplante und durchgeführte Wartungen pro Monat</p></div>
+      <div class="actions">
+        <button class="btn" data-action="print-year">${ic('printer')}Drucken</button>
+        <button class="btn" data-action="export-xlsx">${ic('sheet')}Excel (.xlsx)</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="toolbar">
+        <div class="row">
+          <button class="btn icon" data-action="year" data-delta="-1" title="Vorheriges Jahr">${ic('back')}</button>
+          <button class="btn" data-action="year" data-delta="0">${ui.year}</button>
+          <button class="btn icon" data-action="year" data-delta="1" title="Nächstes Jahr"><svg class="i" style="transform:scaleX(-1)"><use href="#i-back"/></svg></button>
+        </div>
+        <select class="input" id="ymachine" data-bind="ymachine"><option value="">Alle Objekte</option>${machineOptions(ui.ymachine)}</select>
+      </div>
+      ${tasks.length ? `<div class="table-wrap"><table class="t yp"><thead><tr><th>Objekt</th><th>Aufgabe</th><th>Intervall</th>${MONTHS.map((m, i) => `<th class="${i === curMonth ? 'cur' : ''}">${m}</th>`).join('')}</tr></thead><tbody>
+        ${tasks.map(t => {
+          const { plan, done } = yearMatrix(t, ui.year);
+          const occ = occurrencesInYear(t, ui.year);
+          return `<tr><td><button class="link" data-action="open-machine" data-id="${t.machineId}">${esc(machineName(t.machineId))}</button></td><td>${esc(t.title)}</td><td class="nowrap sub">${intervalLabel(t)}</td>
+          ${plan.map((p, i) => {
+            const late = occ.some(d => Number(d.slice(5, 7)) - 1 === i && d < today);
+            let cell = '';
+            if (done[i]) cell += `<span class="mark done" title="${done[i]}× erledigt">✓${done[i] > 1 ? done[i] : ''}</span>`;
+            if (p && !(done[i] >= p)) cell += `<span class="mark ${late ? 'late' : 'plan'}" title="${p}× geplant">${p > 1 ? p + '×' : '●'}</span>`;
+            return `<td class="${i === curMonth ? 'cur' : ''}">${cell}</td>`;
+          }).join('')}</tr>`;
+        }).join('')}
+      </tbody></table></div>
+      <div class="legend"><span><span class="mark plan">●</span> geplant</span><span><span class="mark late">●</span> geplant &amp; überfällig</span><span><span class="mark done">✓</span> erledigt</span><span><span class="mark plan">4×</span> mehrfach im Monat</span></div>`
+      : emptyState('Keine Aufgaben', 'Für die Auswahl gibt es keine Wartungsaufgaben.')}
+    </div>`;
+  },
+
+  /* ---------- Historie ---------- */
+  history() {
+    const list = db.history.filter(h => !ui.hmachine || h.machineId === ui.hmachine).sort((a, b) => b.date.localeCompare(a.date));
+    return `
+    <div class="page-head">
+      <div><h1>Historie</h1><p>Alle durchgeführten Wartungen (${db.history.length})</p></div>
+      <div class="actions"><button class="btn" data-action="print-history">${ic('printer')}Drucken</button><button class="btn" data-action="export-xlsx">${ic('sheet')}Excel (.xlsx)</button></div>
+    </div>
+    <div class="card">
+      <div class="toolbar"><select class="input" id="hmachine" data-bind="hmachine"><option value="">Alle Objekte</option>${machineOptions(ui.hmachine)}</select></div>
+      ${list.length ? historyTable(list, true) : emptyState('Keine Einträge', 'Sobald du eine Wartung als „Erledigt“ markierst, erscheint sie hier.')}
+    </div>`;
+  },
+
+  /* ---------- Export & Daten ---------- */
+  data() {
+    return `
+    <div class="page-head"><div><h1>Export &amp; Daten</h1><p>Drucken, nach Excel exportieren, sichern und wiederherstellen</p></div></div>
+    <div class="data-grid">
+      <div class="card"><div class="card-head"><h2>Excel-Export</h2></div><div class="card-body">
+        <p>Erstellt eine echte Excel-Datei (.xlsx) mit den Blättern <b>Wartungsplan</b>, <b>Objekte</b>, <b>Jahresplan ${ui.year}</b> und <b>Historie</b> – mit Filtern, Datumsformat und Farbmarkierung.</p>
+        <div class="actions"><button class="btn primary" data-action="export-xlsx">${ic('sheet')}Excel herunterladen</button><button class="btn" data-action="export-csv">${ic('download')}CSV (Wartungsplan)</button></div>
+      </div></div>
+      <div class="card"><div class="card-head"><h2>Drucken</h2></div><div class="card-body">
+        <p>Druckansichten als Liste, Jahresübersicht oder Wartungskarte je Objekt (mit Unterschriftenfeldern). Über den Druckdialog auch als PDF speicherbar.</p>
+        <div class="actions"><button class="btn" data-action="print-plan">${ic('printer')}Wartungsplan</button><button class="btn" data-action="print-year">${ic('printer')}Jahresplan</button><button class="btn" data-action="print-all-cards">${ic('printer')}Alle Wartungskarten</button></div>
+      </div></div>
+      <div class="card"><div class="card-head"><h2>Sicherung</h2></div><div class="card-body">
+        <p>Die Daten liegen nur in diesem Browser. Erstelle regelmäßig ein Backup – damit kannst du sie auch auf einen anderen PC übertragen.</p>
+        <div class="actions"><button class="btn primary" data-action="backup">${ic('download')}Backup speichern</button><button class="btn" data-action="restore">${ic('upload')}Backup laden</button></div>
+      </div></div>
+      <div class="card"><div class="card-head"><h2>Einstellungen</h2></div><div class="card-body">
+        <div class="field"><label for="s-company">Firma / Abteilung (erscheint auf Ausdrucken)</label><input class="input" id="s-company" data-setting="company" value="${esc(db.settings.company)}" placeholder="z. B. Musterbetrieb GmbH – Werkstatt"></div>
+        <div class="field"><label for="s-warn">Vorwarnzeit „Bald fällig“ (Tage)</label><input class="input" id="s-warn" type="number" min="0" max="365" data-setting="warnDays" value="${Number(db.settings.warnDays)}"></div>
+        <div class="actions" style="margin-top:6px"><button class="btn danger" data-action="reset">${ic('trash')}Alle Daten löschen</button></div>
+      </div></div>
+    </div>`;
+  }
+};
+
+function machineOptions(selected) {
+  return [...db.machines].sort((a, b) => a.name.localeCompare(b.name, 'de')).map(m => `<option value="${m.id}" ${selected === m.id ? 'selected' : ''}>${esc(m.name)}${m.inventory ? ' (' + esc(m.inventory) + ')' : ''}</option>`).join('');
+}
+
+function filteredPlan() {
+  const q = ui.pq.toLowerCase();
+  const today = todayISO();
+  return sortedTasks().filter(t => {
+    if (ui.pmachine && t.machineId !== ui.pmachine) return false;
+    if (ui.pstatus && taskStatus(t) !== ui.pstatus) return false;
+    if (ui.prange && daysBetween(today, nextDue(t)) > Number(ui.prange)) return false;
+    if (q) {
+      const m = machineById(t.machineId) || {};
+      if (![t.title, t.notes, t.responsible, m.name, m.inventory, m.location].join(' ').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function yearTasks() {
+  return db.tasks.filter(t => !ui.ymachine || t.machineId === ui.ymachine)
+    .sort((a, b) => machineName(a.machineId).localeCompare(machineName(b.machineId), 'de') || a.title.localeCompare(b.title, 'de'));
+}
+
+function historyTable(list, showMachine) {
+  return `<div class="table-wrap"><table class="t"><thead><tr><th>Datum</th>${showMachine ? '<th>Objekt</th>' : ''}<th>Aufgabe</th><th>Durchgeführt von</th><th>Bemerkung</th><th></th></tr></thead><tbody>
+    ${list.map(h => { const t = taskById(h.taskId); return `<tr>
+      <td class="nowrap"><b>${fmt(h.date)}</b></td>
+      ${showMachine ? `<td><button class="link" data-action="open-machine" data-id="${h.machineId}">${esc(machineName(h.machineId))}</button></td>` : ''}
+      <td>${esc(t ? t.title : h.taskTitle || '–')}</td>
+      <td>${esc(h.by || '–')}</td>
+      <td>${esc(h.note || '')}</td>
+      <td class="right"><button class="btn sm icon ghost danger" data-action="delete-history" data-id="${h.id}" title="Eintrag löschen">${ic('trash')}</button></td>
+    </tr>`; }).join('')}
+  </tbody></table></div>`;
+}
+
+/* =========================================================
+   Dialoge
+   ========================================================= */
+let dlgHandler = null;
+function openDialog(title, body, onSubmit, okLabel = 'Speichern') {
+  document.getElementById('dlg-title').textContent = title;
+  document.getElementById('dlg-body').innerHTML = body;
+  document.getElementById('dlg-ok').textContent = okLabel;
+  dlgHandler = onSubmit;
+  const dlg = document.getElementById('dlg');
+  dlg.showModal();
+  const first = dlg.querySelector('.dlg-body input, .dlg-body select, .dlg-body textarea');
+  if (first) first.focus();
+}
+document.getElementById('dlg-form').addEventListener('submit', (e) => {
+  const dlg = document.getElementById('dlg');
+  if (!e.submitter || e.submitter.value !== 'ok') return;
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  for (const k in data) if (typeof data[k] === 'string') data[k] = data[k].trim();
+  if (dlgHandler && dlgHandler(data) === false) return;
+  dlg.close();
+  save();
+  render();
+});
+
+function field(label, html, cls = '', hint = '') {
+  return `<div class="field ${cls}"><label>${label}</label>${html}${hint ? `<div class="hint">${hint}</div>` : ''}</div>`;
+}
+const inp = (name, value = '', attrs = '') => `<input class="input" name="${name}" value="${esc(value)}" ${attrs}>`;
+
+function machineDialog(m) {
+  const isNew = !m;
+  m = m || { type: 'Maschine' };
+  openDialog(isNew ? 'Neues Objekt' : 'Objekt bearbeiten', `
+    <div class="form-grid">
+      ${field('Bezeichnung *', inp('name', m.name, 'required placeholder="z. B. CNC-Fräsmaschine"'), 'full')}
+      ${field('Typ', `<select class="input" name="type">${TYPES.map(t => `<option ${m.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select>`)}
+      ${field('Inventar-Nr.', inp('inventory', m.inventory, 'placeholder="z. B. M-001"'))}
+      ${field('Standort', inp('location', m.location, 'placeholder="z. B. Halle 1" list="dl-locations"'))}
+      ${field('Hersteller', inp('manufacturer', m.manufacturer))}
+      ${field('Modell', inp('model', m.model))}
+      ${field('Seriennummer', inp('serial', m.serial))}
+      ${field('Anschaffungsdatum', inp('purchaseDate', m.purchaseDate, 'type="date"'))}
+      ${field('Notizen', `<textarea class="input" name="notes" rows="3">${esc(m.notes)}</textarea>`, 'full')}
+    </div>
+    <datalist id="dl-locations">${[...new Set(db.machines.map(x => x.location).filter(Boolean))].map(l => `<option value="${esc(l)}">`).join('')}</datalist>`,
+  (d) => {
+    if (isNew) {
+      const nm = Object.assign({ id: uid(), created: todayISO() }, d);
+      db.machines.push(nm);
+      ui.view = 'machine'; ui.machineId = nm.id;
+      toast('Objekt angelegt – jetzt Wartungsaufgaben hinzufügen');
+    } else {
+      Object.assign(m, d);
+      toast('Gespeichert');
+    }
+  });
+}
+
+function taskDialog(t, presetMachine) {
+  if (!db.machines.length) { toast('Bitte zuerst ein Objekt anlegen'); machineDialog(); return; }
+  const isNew = !t;
+  t = t || { machineId: presetMachine || ui.machineId || ui.pmachine || db.machines[0].id, intervalValue: 1, intervalUnit: 'monate', firstDue: todayISO() };
+  const people = [...new Set(db.tasks.map(x => x.responsible).concat(db.history.map(h => h.by)).filter(Boolean))];
+  openDialog(isNew ? 'Neue Wartungsaufgabe' : 'Wartungsaufgabe bearbeiten', `
+    <div class="form-grid">
+      ${field('Objekt *', `<select class="input" name="machineId" required>${machineOptions(t.machineId)}</select>`, 'full')}
+      ${field('Aufgabe *', inp('title', t.title, 'required list="dl-tasks" placeholder="z. B. Sichtprüfung"'), 'full')}
+      ${field('Intervall *', `<div class="row"><input class="input" name="intervalValue" type="number" min="1" max="999" required value="${Number(t.intervalValue) || 1}" style="width:90px"><select class="input" name="intervalUnit" style="flex:1">${Object.entries(UNITS).map(([k, v]) => `<option value="${k}" ${t.intervalUnit === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>`)}
+      ${field('Verantwortlich', inp('responsible', t.responsible, 'list="dl-people" placeholder="Name / Firma"'))}
+      ${field('Zuletzt durchgeführt', inp('lastDone', t.lastDone, 'type="date"'), '', 'Leer lassen, wenn noch nie durchgeführt.')}
+      ${field('Erste Fälligkeit', inp('firstDue', t.firstDue || todayISO(), 'type="date"'), '', 'Gilt nur, wenn „Zuletzt durchgeführt“ leer ist.')}
+      ${field('Hinweise / Arbeitsanweisung', `<textarea class="input" name="notes" rows="3" placeholder="z. B. Öl: HLP 46, 5 Liter">${esc(t.notes)}</textarea>`, 'full')}
+    </div>
+    <datalist id="dl-tasks">${TASK_SUGGESTIONS.map(s => `<option value="${esc(s)}">`).join('')}</datalist>
+    <datalist id="dl-people">${people.map(p => `<option value="${esc(p)}">`).join('')}</datalist>`,
+  (d) => {
+    d.intervalValue = Math.max(1, parseInt(d.intervalValue, 10) || 1);
+    d.lastDone = d.lastDone || null;
+    d.firstDue = d.firstDue || todayISO();
+    if (isNew) { db.tasks.push(Object.assign({ id: uid() }, d)); toast('Aufgabe angelegt'); }
+    else { Object.assign(t, d); toast('Gespeichert'); }
+  });
+}
+
+function doneDialog(t) {
+  const m = machineById(t.machineId) || {};
+  openDialog('Wartung erledigt', `
+    <p style="margin:0 0 14px"><b>${esc(t.title)}</b><br><span class="sub">${esc(m.name || '')} · fällig am ${fmt(nextDue(t))}</span></p>
+    <div class="form-grid">
+      ${field('Durchgeführt am *', inp('date', todayISO(), 'type="date" required'))}
+      ${field('Durchgeführt von', inp('by', t.responsible, 'list="dl-people2"'))}
+      ${field('Bemerkung', `<textarea class="input" name="note" rows="3" placeholder="z. B. Filter getauscht, keine Mängel"></textarea>`, 'full')}
+    </div>
+    <datalist id="dl-people2">${[...new Set(db.history.map(h => h.by).concat(db.tasks.map(x => x.responsible)).filter(Boolean))].map(p => `<option value="${esc(p)}">`).join('')}</datalist>`,
+  (d) => {
+    db.history.push({ id: uid(), taskId: t.id, machineId: t.machineId, taskTitle: t.title, date: d.date, by: d.by, note: d.note, prevLastDone: t.lastDone || null });
+    if (!t.lastDone || d.date > t.lastDone) t.lastDone = d.date;
+    toast(`Erledigt – nächste Fälligkeit: ${fmt(nextDue(t))}`);
+  }, 'Als erledigt speichern');
+}
+
+/* =========================================================
+   Aktionen
+   ========================================================= */
+const ACTIONS = {
+  nav: (el) => { ui.view = el.dataset.view; render(); window.scrollTo(0, 0); },
+  'open-machine': (el) => { ui.view = 'machine'; ui.machineId = el.dataset.id; render(); window.scrollTo(0, 0); },
+  'add-machine': () => machineDialog(),
+  'edit-machine': (el) => machineDialog(machineById(el.dataset.id)),
+  'delete-machine': (el) => {
+    const m = machineById(el.dataset.id);
+    const n = tasksOf(m.id).length;
+    if (!confirm(`„${m.name}“ wirklich löschen?${n ? `\n${n} Wartungsaufgabe(n) und deren Historie werden ebenfalls gelöscht.` : ''}`)) return;
+    db.machines = db.machines.filter(x => x.id !== m.id);
+    db.tasks = db.tasks.filter(t => t.machineId !== m.id);
+    db.history = db.history.filter(h => h.machineId !== m.id);
+    save(); ui.view = 'machines'; render(); toast('Objekt gelöscht');
+  },
+  'add-task': (el) => taskDialog(null, el.dataset.machine),
+  'edit-task': (el) => taskDialog(taskById(el.dataset.id)),
+  'delete-task': (el) => {
+    const t = taskById(el.dataset.id);
+    if (!confirm(`Aufgabe „${t.title}“ löschen?\nDie Historie dieser Aufgabe bleibt erhalten.`)) return;
+    db.tasks = db.tasks.filter(x => x.id !== t.id);
+    save(); render(); toast('Aufgabe gelöscht');
+  },
+  done: (el) => doneDialog(taskById(el.dataset.id)),
+  'delete-history': (el) => {
+    const h = db.history.find(x => x.id === el.dataset.id);
+    if (!confirm(`Eintrag vom ${fmt(h.date)} löschen?`)) return;
+    db.history = db.history.filter(x => x.id !== h.id);
+    const t = taskById(h.taskId);
+    if (t && t.lastDone === h.date) {
+      const rest = db.history.filter(x => x.taskId === t.id).map(x => x.date);
+      if (h.prevLastDone) rest.push(h.prevLastDone);
+      t.lastDone = rest.sort().pop() || null;
+    }
+    save(); render(); toast('Eintrag gelöscht');
+  },
+  year: (el) => { const d = Number(el.dataset.delta); ui.year = d ? ui.year + d : new Date().getFullYear(); render(); },
+  theme: () => {
+    const cur = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = cur;
+    try { localStorage.setItem(STORAGE_KEY + '.theme', cur); } catch (e) {}
+  },
+  demo: () => { loadDemo(); save(); ui.view = 'dashboard'; render(); toast('Beispieldaten geladen'); },
+  'export-xlsx': () => exportXlsx(),
+  'export-csv': () => exportCsv(),
+  'print-plan': () => printPlan(),
+  'print-year': () => printYear(),
+  'print-history': () => printHistory(),
+  'print-card': (el) => printCards([machineById(el.dataset.id)]),
+  'print-all-cards': () => { if (!db.machines.length) return toast('Keine Objekte vorhanden'); printCards([...db.machines].sort((a, b) => a.name.localeCompare(b.name, 'de'))); },
+  backup: () => {
+    download(`Wartungsplaner-Backup_${todayISO()}.json`, new Blob([JSON.stringify(Object.assign({ app: 'Wartungsplaner', version: 1, exported: new Date().toISOString() }, db), null, 2)], { type: 'application/json' }));
+    toast('Backup gespeichert');
+  },
+  restore: () => document.getElementById('file-import').click(),
+  reset: () => {
+    if (!confirm('Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.\nTipp: Vorher ein Backup speichern.')) return;
+    db = emptyDb(); save(); ui.view = 'dashboard'; render(); toast('Alle Daten gelöscht');
+  }
+};
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-action]');
+  if (!el || el.closest('dialog')) return;
+  const fn = ACTIONS[el.dataset.action];
+  if (fn) { e.stopPropagation(); fn(el); }
+});
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (el.dataset.bind) { ui[el.dataset.bind] = el.value; render(); }
+  else if (el.dataset.setting) {
+    db.settings[el.dataset.setting] = el.dataset.setting === 'warnDays' ? Math.max(0, parseInt(el.value, 10) || 0) : el.value;
+    save();
+  }
+});
+document.getElementById('file-import').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data.machines) || !Array.isArray(data.tasks)) throw new Error('Format');
+    if (!confirm(`Backup laden?\n${data.machines.length} Objekte, ${data.tasks.length} Aufgaben, ${(data.history || []).length} Historieneinträge.\nDie aktuellen Daten werden ersetzt.`)) return;
+    db = normalize(data); save(); ui.view = 'dashboard'; render(); toast('Backup geladen');
+  } catch (err) { alert('Die Datei ist kein gültiges Wartungsplaner-Backup.'); }
+});
+
+/* =========================================================
+   Drucken
+   ========================================================= */
+function printHeader(title, sub = '') {
+  return `<div class="p-head"><div><h1>${esc(title)}</h1>${sub ? `<div>${sub}</div>` : ''}</div><div class="p-meta">${esc(db.settings.company || '')}<br>Stand: ${fmt(todayISO())}</div></div>`;
+}
+function doPrint(html, landscape) {
+  document.getElementById('page-style').textContent = `@page { size: A4 ${landscape ? 'landscape' : 'portrait'}; margin: 12mm; }`;
+  document.getElementById('print').innerHTML = html;
+  setTimeout(() => window.print(), 50);
+}
+window.addEventListener('afterprint', () => { document.getElementById('print').innerHTML = ''; });
+
+function printPlan() {
+  const list = ui.view === 'plan' ? filteredPlan() : sortedTasks();
+  if (!list.length) return toast('Keine Aufgaben zum Drucken');
+  const filt = [];
+  if (ui.view === 'plan') {
+    if (ui.pmachine) filt.push('Objekt: ' + machineName(ui.pmachine));
+    if (ui.pstatus) filt.push('Status: ' + STATUS_LABEL[ui.pstatus]);
+    if (ui.prange) filt.push(`nächste ${ui.prange} Tage`);
+    if (ui.pq) filt.push(`Suche: „${ui.pq}“`);
+  }
+  doPrint(printHeader('Wartungsplan', esc(filt.join(' · '))) + `
+    <table class="p-table"><thead><tr><th>Status</th><th>Fällig am</th><th>Objekt</th><th>Inv.-Nr.</th><th>Standort</th><th>Aufgabe</th><th>Intervall</th><th>Zuletzt</th><th>Verantwortlich</th><th style="width:70px">Erledigt</th></tr></thead><tbody>
+    ${list.map(t => { const m = machineById(t.machineId) || {}; const st = taskStatus(t); return `<tr>
+      <td class="p-st ${st}">${STATUS_LABEL[st]}</td><td class="nw">${fmt(nextDue(t))}</td><td>${esc(m.name)}</td><td class="nw">${esc(m.inventory || '')}</td><td>${esc(m.location || '')}</td>
+      <td><b>${esc(t.title)}</b>${t.notes ? `<br><small>${esc(t.notes)}</small>` : ''}</td><td>${intervalLabel(t)}</td><td>${fmt(t.lastDone)}</td><td>${esc(t.responsible || '')}</td><td></td></tr>`; }).join('')}
+    </tbody></table>`, true);
+}
+
+function printYear() {
+  const tasks = yearTasks();
+  if (!tasks.length) return toast('Keine Aufgaben zum Drucken');
+  doPrint(printHeader(`Jahresplan ${ui.year}`, ui.ymachine ? esc(machineName(ui.ymachine)) : '') + `
+    <table class="p-table yp-print"><thead><tr><th>Objekt</th><th>Aufgabe</th><th>Intervall</th>${MONTHS.map(m => `<th>${m}</th>`).join('')}</tr></thead><tbody>
+    ${tasks.map(t => { const { plan, done } = yearMatrix(t, ui.year); return `<tr><td>${esc(machineName(t.machineId))}</td><td>${esc(t.title)}</td><td>${intervalLabel(t)}</td>
+      ${plan.map((p, i) => done[i] ? `<td class="p-done">✓${done[i] > 1 ? done[i] : ''}</td>` : p ? `<td class="p-plan">${p > 1 ? p + '×' : 'X'}</td>` : '<td></td>').join('')}</tr>`; }).join('')}
+    </tbody></table>
+    <div style="font-size:9pt">X = geplant · ✓ = erledigt · 4× = mehrfach im Monat</div>`, true);
+}
+
+function printHistory() {
+  const list = db.history.filter(h => !ui.hmachine || h.machineId === ui.hmachine).sort((a, b) => b.date.localeCompare(a.date));
+  if (!list.length) return toast('Keine Einträge zum Drucken');
+  doPrint(printHeader('Wartungsnachweis / Historie', ui.hmachine ? esc(machineName(ui.hmachine)) : '') + `
+    <table class="p-table"><thead><tr><th>Datum</th><th>Objekt</th><th>Aufgabe</th><th>Durchgeführt von</th><th>Bemerkung</th></tr></thead><tbody>
+    ${list.map(h => { const t = taskById(h.taskId); return `<tr><td>${fmt(h.date)}</td><td>${esc(machineName(h.machineId))}</td><td>${esc(t ? t.title : h.taskTitle || '')}</td><td>${esc(h.by || '')}</td><td>${esc(h.note || '')}</td></tr>`; }).join('')}
+    </tbody></table>`, false);
+}
+
+function printCards(machines) {
+  const html = machines.map((m, idx) => {
+    const ts = sortedTasks(tasksOf(m.id));
+    const hist = db.history.filter(h => h.machineId === m.id).sort((a, b) => a.date.localeCompare(b.date)).slice(-15);
+    const blanks = Math.max(8, 18 - hist.length);
+    return `<div class="${idx ? 'p-break' : ''}">
+      ${printHeader('Wartungskarte', `<b>${esc(m.name)}</b>`)}
+      <div class="p-info">
+        ${[['Typ', m.type], ['Inventar-Nr.', m.inventory], ['Standort', m.location], ['Hersteller', m.manufacturer], ['Modell', m.model], ['Seriennummer', m.serial]].map(([k, v]) => `<div><b>${k}</b>${esc(v || '–')}</div>`).join('')}
+      </div>
+      <h2 class="p-section">Wartungsaufgaben</h2>
+      ${ts.length ? `<table class="p-table"><thead><tr><th>Aufgabe</th><th>Intervall</th><th>Zuletzt</th><th>Nächste Fälligkeit</th><th>Verantwortlich</th><th>Hinweise</th></tr></thead><tbody>
+        ${ts.map(t => `<tr><td><b>${esc(t.title)}</b></td><td>${intervalLabel(t)}</td><td>${fmt(t.lastDone)}</td><td>${fmt(nextDue(t))}</td><td>${esc(t.responsible || '')}</td><td>${esc(t.notes || '')}</td></tr>`).join('')}
+      </tbody></table>` : '<p>Keine Wartungsaufgaben hinterlegt.</p>'}
+      <h2 class="p-section">Wartungsnachweis</h2>
+      <table class="p-table"><thead><tr><th style="width:85px">Datum</th><th>Aufgabe</th><th style="width:130px">Durchgeführt von</th><th>Bemerkung</th><th style="width:110px">Unterschrift</th></tr></thead><tbody>
+        ${hist.map(h => { const t = taskById(h.taskId); return `<tr><td>${fmt(h.date)}</td><td>${esc(t ? t.title : h.taskTitle || '')}</td><td>${esc(h.by || '')}</td><td>${esc(h.note || '')}</td><td></td></tr>`; }).join('')}
+        ${'<tr class="p-blank"><td></td><td></td><td></td><td></td><td></td></tr>'.repeat(blanks)}
+      </tbody></table>
+    </div>`;
+  }).join('');
+  doPrint(html, false);
+}
+
+/* =========================================================
+   Excel (.xlsx) – eigener Generator, ohne externe Bibliothek
+   ========================================================= */
+const CRC_TABLE = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(buf) { let c = 0xFFFFFFFF; for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+
+function makeZip(files) {
+  const enc = new TextEncoder();
+  const now = new Date();
+  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  const parts = [], central = [];
+  let offset = 0;
+  for (const f of files) {
+    const name = enc.encode(f.name), data = enc.encode(f.data), crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint16(10, dosTime, true); lh.setUint16(12, dosDate, true); lh.setUint32(14, crc, true);
+    lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+    ch.setUint16(12, dosTime, true); ch.setUint16(14, dosDate, true); ch.setUint32(16, crc, true);
+    ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true);
+    ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + data.length;
+  }
+  const cdSize = central.reduce((s, p) => s + p.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+const xmlEsc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+function colName(i) { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+function excelDate(iso) { const [y, m, d] = iso.split('-').map(Number); return (Date.UTC(y, m - 1, d) - Date.UTC(1899, 11, 30)) / 86400000; }
+
+/* Stil-IDs (siehe styles.xml unten) */
+const XS = { header: 1, text: 2, date: 3, overdue: 4, soon: 5, ok: 6, num: 7, plan: 8, done: 9, center: 10 };
+
+function sheetXml(rows, widths, opts = {}) {
+  const lastCol = colName(widths.length - 1);
+  const body = rows.map((r, ri) => `<row r="${ri + 1}">${r.map((c, ci) => {
+    if (c == null) return '';
+    const ref = colName(ci) + (ri + 1);
+    const cell = typeof c === 'object' ? c : { v: c };
+    const s = cell.s != null ? cell.s : (ri === 0 ? XS.header : XS.text);
+    if (cell.date) return `<c r="${ref}" s="${cell.s != null ? cell.s : XS.date}"><v>${excelDate(cell.date)}</v></c>`;
+    if (typeof cell.v === 'number') return `<c r="${ref}" s="${cell.s != null ? cell.s : XS.num}"><v>${cell.v}</v></c>`;
+    return `<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(cell.v)}</t></is></c>`;
+  }).join('')}</row>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
+<dimension ref="A1:${lastCol}${Math.max(rows.length, 1)}"/>
+<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+<sheetFormatPr defaultRowHeight="15"/>
+<cols>${widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('')}</cols>
+<sheetData>${body}</sheetData>
+${rows.length > 1 && opts.filter !== false ? `<autoFilter ref="A1:${lastCol}${rows.length}"/>` : ''}
+<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>
+<pageSetup paperSize="9" orientation="${opts.portrait ? 'portrait' : 'landscape'}" fitToWidth="1" fitToHeight="0"/>
+</worksheet>`;
+}
+
+const STYLES_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<numFmts count="1"><numFmt numFmtId="164" formatCode="dd.mm.yyyy"/></numFmts>
+<fonts count="3">
+<font><sz val="11"/><name val="Calibri"/><family val="2"/></font>
+<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font>
+<font><b/><sz val="11"/><name val="Calibri"/><family val="2"/></font>
+</fonts>
+<fills count="8">
+<fill><patternFill patternType="none"/></fill>
+<fill><patternFill patternType="gray125"/></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FF1E3A8A"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFFDE2E2"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFFEF3C7"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFDCFCE7"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFDBEAFE"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFBBF7D0"/><bgColor indexed="64"/></patternFill></fill>
+</fills>
+<borders count="2">
+<border><left/><right/><top/><bottom/><diagonal/></border>
+<border><left style="thin"><color rgb="FFCBD5E1"/></left><right style="thin"><color rgb="FFCBD5E1"/></right><top style="thin"><color rgb="FFCBD5E1"/></top><bottom style="thin"><color rgb="FFCBD5E1"/></bottom><diagonal/></border>
+</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="11">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>
+<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="top"/></xf>
+<xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>
+<xf numFmtId="0" fontId="2" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>
+<xf numFmtId="0" fontId="2" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="top"/></xf>
+<xf numFmtId="0" fontId="2" fillId="6" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>
+<xf numFmtId="0" fontId="2" fillId="7" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center"/></xf>
+</cellXfs>
+<cellStyles count="1"><cellStyle name="Standard" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+
+function buildXlsx(sheets) {
+  const files = [];
+  files.push({ name: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
+${sheets.map((s, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('\n')}
+</Types>` });
+  files.push({ name: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>
+</Relationships>` });
+  files.push({ name: 'docProps/core.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<dc:title>Wartungsplan</dc:title><dc:creator>Wartungsplaner</dc:creator>
+<dcterms:created xsi:type="dcterms:W3CDTF">${new Date().toISOString().slice(0, 19)}Z</dcterms:created>
+</cp:coreProperties>` });
+  const defined = sheets.map((s, i) => s.rows.length > 1 && s.filter !== false ? `<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">'${xmlEsc(s.name)}'!$A$1:$${colName(s.widths.length - 1)}$${s.rows.length}</definedName>` : '').join('');
+  files.push({ name: 'xl/workbook.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<bookViews><workbookView activeTab="0"/></bookViews>
+<sheets>${sheets.map((s, i) => `<sheet name="${xmlEsc(s.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('')}</sheets>
+${defined ? `<definedNames>${defined}</definedNames>` : ''}
+</workbook>` });
+  files.push({ name: 'xl/_rels/workbook.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+${sheets.map((s, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('\n')}
+<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>` });
+  files.push({ name: 'xl/styles.xml', data: STYLES_XML });
+  sheets.forEach((s, i) => files.push({ name: `xl/worksheets/sheet${i + 1}.xml`, data: sheetXml(s.rows, s.widths, s) }));
+  return makeZip(files);
+}
+
+function exportXlsx() {
+  if (!db.machines.length) return toast('Keine Daten zum Exportieren');
+  const today = todayISO();
+  const D = (iso) => iso ? { date: iso } : '';
+
+  const plan = [['Status', 'Fällig am', 'Tage bis fällig', 'Objekt', 'Inventar-Nr.', 'Standort', 'Aufgabe', 'Intervall', 'Zuletzt erledigt', 'Verantwortlich', 'Hinweise']];
+  sortedTasks().forEach(t => {
+    const m = machineById(t.machineId) || {}, st = taskStatus(t);
+    plan.push([{ v: STATUS_LABEL[st], s: XS[st] }, D(nextDue(t)), daysBetween(today, nextDue(t)), m.name || '', m.inventory || '', m.location || '', t.title, intervalLabel(t), D(t.lastDone), t.responsible || '', t.notes || '']);
+  });
+
+  const objs = [['Bezeichnung', 'Typ', 'Inventar-Nr.', 'Standort', 'Hersteller', 'Modell', 'Seriennummer', 'Anschaffung', 'Status', 'Anzahl Aufgaben', 'Notizen']];
+  [...db.machines].sort((a, b) => a.name.localeCompare(b.name, 'de')).forEach(m => {
+    const st = machineStatus(m.id);
+    objs.push([m.name, m.type || '', m.inventory || '', m.location || '', m.manufacturer || '', m.model || '', m.serial || '', D(m.purchaseDate), { v: STATUS_LABEL[st], s: XS[st] || XS.text }, tasksOf(m.id).length, m.notes || '']);
+  });
+
+  const yp = [['Objekt', 'Aufgabe', 'Intervall', ...MONTHS]];
+  db.tasks.slice().sort((a, b) => machineName(a.machineId).localeCompare(machineName(b.machineId), 'de') || a.title.localeCompare(b.title, 'de')).forEach(t => {
+    const { plan: p, done } = yearMatrix(t, ui.year);
+    yp.push([machineName(t.machineId), t.title, intervalLabel(t), ...p.map((n, i) => done[i] ? { v: '✓' + (done[i] > 1 ? done[i] : ''), s: XS.done } : n ? { v: n > 1 ? n + '×' : 'X', s: XS.plan } : { v: '', s: XS.center })]);
+  });
+
+  const hist = [['Datum', 'Objekt', 'Inventar-Nr.', 'Aufgabe', 'Durchgeführt von', 'Bemerkung']];
+  [...db.history].sort((a, b) => b.date.localeCompare(a.date)).forEach(h => {
+    const t = taskById(h.taskId), m = machineById(h.machineId) || {};
+    hist.push([D(h.date), m.name || '(gelöscht)', m.inventory || '', t ? t.title : h.taskTitle || '', h.by || '', h.note || '']);
+  });
+
+  const blob = buildXlsx([
+    { name: 'Wartungsplan', rows: plan, widths: [14, 12, 10, 28, 13, 16, 34, 18, 14, 20, 40] },
+    { name: 'Objekte', rows: objs, widths: [28, 12, 13, 16, 18, 16, 16, 13, 15, 10, 40] },
+    { name: `Jahresplan ${ui.year}`, rows: yp, widths: [28, 34, 18, ...Array(12).fill(6)] },
+    { name: 'Historie', rows: hist, widths: [12, 28, 13, 34, 20, 50], portrait: true }
+  ]);
+  download(`Wartungsplan_${today}.xlsx`, blob);
+  toast('Excel-Datei erstellt');
+}
+
+function exportCsv() {
+  if (!db.tasks.length) return toast('Keine Aufgaben zum Exportieren');
+  const q = (v) => { const s = String(v ?? ''); return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const rows = [['Status', 'Fällig am', 'Objekt', 'Inventar-Nr.', 'Standort', 'Aufgabe', 'Intervall', 'Zuletzt erledigt', 'Verantwortlich', 'Hinweise']];
+  (ui.view === 'plan' ? filteredPlan() : sortedTasks()).forEach(t => {
+    const m = machineById(t.machineId) || {};
+    rows.push([STATUS_LABEL[taskStatus(t)], fmt(nextDue(t)), m.name, m.inventory, m.location, t.title, intervalLabel(t), t.lastDone ? fmt(t.lastDone) : '', t.responsible, t.notes]);
+  });
+  download(`Wartungsplan_${todayISO()}.csv`, new Blob(['﻿' + rows.map(r => r.map(q).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+  toast('CSV erstellt');
+}
+
+/* =========================================================
+   Beispieldaten
+   ========================================================= */
+function loadDemo() {
+  const t = todayISO();
+  const ago = (days) => addInterval(t, -days, 'tage');
+  const M = (o) => { const m = Object.assign({ id: uid(), created: t }, o); db.machines.push(m); return m.id; };
+  const T = (mid, title, n, unit, lastDone, responsible, notes = '') => db.tasks.push({ id: uid(), machineId: mid, title, intervalValue: n, intervalUnit: unit, lastDone, firstDue: t, responsible, notes });
+
+  const cnc = M({ name: 'CNC-Fräsmaschine', type: 'Maschine', inventory: 'M-001', location: 'Halle 1', manufacturer: 'DMG Mori', model: 'DMU 50', serial: 'DM50-77812', purchaseDate: '2019-04-15' });
+  const komp = M({ name: 'Schraubenkompressor', type: 'Anlage', inventory: 'A-004', location: 'Technikraum', manufacturer: 'Kaeser', model: 'SK 22', serial: 'KS-220391' });
+  const stap = M({ name: 'Gabelstapler', type: 'Fahrzeug', inventory: 'F-002', location: 'Lager', manufacturer: 'Linde', model: 'H25', serial: 'LH25-55102' });
+  const bohr = M({ name: 'Standbohrmaschine', type: 'Maschine', inventory: 'M-007', location: 'Werkstatt', manufacturer: 'Alzmetall', model: 'AB 4/SV' });
+  const akku = M({ name: 'Akku-Bohrschrauber (5 Stk.)', type: 'Werkzeug', inventory: 'W-015', location: 'Werkzeugausgabe', manufacturer: 'Makita', model: 'DDF484' });
+
+  T(cnc, 'Sichtprüfung & Reinigung', 1, 'wochen', ago(9), 'Max Müller', 'Späne entfernen, Abdeckungen prüfen');
+  T(cnc, 'Kühlschmierstoff prüfen', 2, 'wochen', ago(6), 'Max Müller', 'Konzentration 5–7 %');
+  T(cnc, 'Schmierung Führungen', 1, 'monate', ago(20), 'Max Müller');
+  T(cnc, 'Wartung durch Hersteller', 1, 'jahre', ago(300), 'DMG Service');
+  T(komp, 'Kondensat ablassen', 1, 'wochen', ago(3), 'Haustechnik');
+  T(komp, 'Ansaugfilter wechseln', 6, 'monate', ago(190), 'Haustechnik', 'Filter-Nr. 6.4149.0');
+  T(komp, 'Ölwechsel', 1, 'jahre', ago(200), 'Kaeser Service');
+  T(stap, 'UVV-Prüfung', 1, 'jahre', ago(352), 'Linde Service', 'Prüfbuch mitführen');
+  T(stap, 'Reifen / Bremsen prüfen', 1, 'monate', ago(25), 'Lagerleitung');
+  T(bohr, 'Elektrische Prüfung (DGUV V3)', 1, 'jahre', ago(100), 'Elektro Schmidt');
+  T(bohr, 'Keilriemen prüfen', 3, 'monate', ago(80), 'Max Müller');
+  T(akku, 'Elektrische Prüfung (DGUV V3)', 1, 'jahre', ago(380), 'Elektro Schmidt');
+  T(akku, 'Akkus prüfen', 3, 'monate', ago(40), 'Werkzeugausgabe');
+
+  db.tasks.forEach(task => {
+    if (task.lastDone) db.history.push({ id: uid(), taskId: task.id, machineId: task.machineId, taskTitle: task.title, date: task.lastDone, by: task.responsible, note: 'ohne Befund', prevLastDone: null });
+  });
+}
+
+/* =========================================================
+   Start
+   ========================================================= */
+(function init() {
+  let theme = null;
+  try { theme = localStorage.getItem(STORAGE_KEY + '.theme'); } catch (e) {}
+  if (!theme && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
+  if (theme) document.documentElement.dataset.theme = theme;
+  render();
+  // Status (überfällig/bald fällig) aktualisiert sich auch, wenn die Seite über Nacht offen bleibt
+  setInterval(() => { if (!document.getElementById('dlg').open) render(); }, 10 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
