@@ -1,0 +1,1037 @@
+{
+ "CL": {
+  "allg": {
+   "name": "Instandhaltung allgemein",
+   "short": "Allgemein",
+   "sheet": "Auditcheckliste_allg",
+   "desc": "System-Audit der Instandhaltungsorganisation einer Abteilung (39 Prüfpunkte, Deutsch/Englisch).",
+   "objLabel": "Abteilung / Bereich",
+   "rateLabel": "Zustand",
+   "cats": [
+    {
+     "id": "A",
+     "name": "Organisation & Personal",
+     "items": [
+      [
+       "g1",
+       "1",
+       "Existiert eine Verfahrensanweisung für das Instandhaltungssystem (aktuell / wird sie gelebt)?",
+       "Is there a procedure for the maintenance system? (Is it currently being followed/implemented?)"
+      ],
+      [
+       "g2",
+       "2",
+       "Existiert eine Arbeitsanweisung für die vorbeugende Instandhaltung (aktuell / wird sie gelebt)?",
+       "Is there a work instruction for preventive maintenance? (Is it currently being implemented/is it being followed?)"
+      ],
+      [
+       "g3",
+       "3",
+       "Existiert eine Qualifikationsmatrix / Vertretungsregelung / Struktur der IH?",
+       "Does a qualification matrix / substitution arrangement / structure of the IH exist?"
+      ],
+      [
+       "g4",
+       "4",
+       "Existiert eine Schichtregelung? Ist die technische Betreuung der Anlage gewährleistet?",
+       "Is there a shift system in place? Is technical support for the plant guaranteed?"
+      ],
+      [
+       "g5",
+       "5",
+       "Führungskräfteanzahl in der IH",
+       ""
+      ],
+      [
+       "g6",
+       "6",
+       "Existiert eine Kapazitäts- und Terminplanung der MA (T/W/M/J)?",
+       ""
+      ],
+      [
+       "g7",
+       "7",
+       "Flexibilität und Qualifikation der MA innerhalb der Fertigungsbereiche",
+       ""
+      ]
+     ]
+    },
+    {
+     "id": "B",
+     "name": "Strategie & IH-System",
+     "items": [
+      [
+       "g8",
+       "8",
+       "Anwendung von Instandhaltungsstrategien (welche Instandhaltungsstrategie?)",
+       "Application of maintenance strategies (which maintenance strategy)"
+      ],
+      [
+       "g9",
+       "9",
+       "Welches IH-System steht zur Verfügung (Wartung, Inspektion, geplante/ungeplante Reparatur) und wird es genutzt?",
+       "Which maintenance system is available (maintenance; inspection; planned/unplanned repairs) and is it being used?"
+      ],
+      [
+       "g10",
+       "10",
+       "Existiert eine vorbeugende Instandhaltung?",
+       "Preventive maintenance exists"
+      ],
+      [
+       "g11",
+       "11",
+       "Qualität planmäßige Wartung (Intervalle, Arbeitspläne, Arbeitsabläufe)",
+       "Quality of scheduled maintenance (intervals; work plans; work processes)"
+      ],
+      [
+       "g12",
+       "12",
+       "Qualität planmäßige Inspektion (Intervalle, Arbeitspläne, Arbeitsabläufe)",
+       "Quality of scheduled inspections (intervals; work plans; work procedures)"
+      ],
+      [
+       "g13",
+       "13",
+       "Qualität planmäßig vorbeugende Instandsetzung (Intervalle, Arbeitspläne, Arbeitsabläufe)",
+       "Quality of scheduled preventive maintenance (intervals; work plans; workflows)"
+      ],
+      [
+       "g14",
+       "14",
+       "Qualität störungsbedingte, bedarfsweise Instandsetzung / Einsatzbereitschaft (Arbeitspläne, Reaktionsvermögen bei Störungen)",
+       "Quality of breakdown-based and demand-based maintenance / operational readiness (work plans; responsiveness to malfunctions)"
+      ],
+      [
+       "g15",
+       "15",
+       "Wird Outsourcing (Fremdauftragsvergabe) für Wartung, Inspektion und geplante Instandsetzung praktiziert?",
+       "Is outsourcing (contracting) practiced for maintenance, inspection, and planned repairs?"
+      ]
+     ]
+    },
+    {
+     "id": "C",
+     "name": "Durchführung & Schulung",
+     "items": [
+      [
+       "g16",
+       "16",
+       "Sind MA für präventive Instandhaltung (PM) geschult worden?",
+       "Have employees been trained in preventive maintenance (PM)?"
+      ],
+      [
+       "g17",
+       "17",
+       "Werden Betriebsstoffe für PM bereitgestellt?",
+       "Are operating materials provided for PM?"
+      ],
+      [
+       "g18",
+       "18",
+       "Werden Wartungen sachgemäß durchgeführt? Sichtkontrolle? Erledigte/unerledigte Aufträge?",
+       "Is maintenance being carried out properly? Visual inspection? Completed/uncompleted tasks?"
+      ],
+      [
+       "g19",
+       "19",
+       "Wie werden Werkzeuge gewartet? In welchem Zustand?",
+       "How are tools maintained? In what condition?"
+      ]
+     ]
+    },
+    {
+     "id": "D",
+     "name": "Auswertung & Verbesserung",
+     "items": [
+      [
+       "g20",
+       "20",
+       "Werden Wartungsmängel ausgewertet?",
+       "Are maintenance deficiencies evaluated?"
+      ],
+      [
+       "g21",
+       "21",
+       "Kontinuierliche Optimierung der Wartungs-/Inspektionspläne?",
+       "Continuous optimization of maintenance/inspection plans?"
+      ],
+      [
+       "g22",
+       "22",
+       "Schadensregistrierung (Änderung durch konstruktives Beseitigen von Störquellen)",
+       ""
+      ],
+      [
+       "g23",
+       "23",
+       "Schadensanalysen und Durchführung",
+       "Damage analysis and implementation"
+      ],
+      [
+       "g24",
+       "24",
+       "Technische Verfügbarkeit der Maschinen als Maß für die IH <> 90 %",
+       "Technical availability of machines as a measure of IH <> 80 %"
+      ]
+     ]
+    },
+    {
+     "id": "E",
+     "name": "Dokumentation & Kommunikation",
+     "items": [
+      [
+       "g25",
+       "25",
+       "Verwaltung der technischen Dokumentation (Stücklisten, Maschinenbeschreibung, technische Zeichnungen)",
+       "Management of technical documentation (parts lists; machine descriptions; technical drawings)"
+      ],
+      [
+       "g26",
+       "26",
+       "Findet eine Absprache zwischen Instandhaltung und Produktion statt?",
+       "Is there coordination between maintenance and production?"
+      ],
+      [
+       "g27",
+       "27",
+       "Wie gelangen Informationen an die Instandhalter / Anlagenführer?",
+       ""
+      ],
+      [
+       "g28",
+       "28",
+       "Wie ist die Bereitschaft der Instandhalter zu Weiterbildungsmaßnahmen?",
+       ""
+      ]
+     ]
+    },
+    {
+     "id": "F",
+     "name": "Werkstatt & Betriebsmittel",
+     "items": [
+      [
+       "g29",
+       "29",
+       "Wie sieht die Werkstattausstattung aus und wie ist deren Qualität?",
+       "What does the workshop equipment look like and what is its quality?"
+      ],
+      [
+       "g30",
+       "30",
+       "Gibt es Betriebsmittel für Instandsetzung, PM und Generalüberholung?",
+       "Are there resources available for repair, preventive maintenance (PM), and major overhauls?"
+      ]
+     ]
+    },
+    {
+     "id": "G",
+     "name": "Material & Ersatzteile",
+     "items": [
+      [
+       "g31",
+       "31",
+       "Wie wird die Materialplanung (Ersatzteile, Betriebs- und Hilfsstoffe) durchgeführt (Stücklisten, Programme, Disposition)?",
+       "How is material planning (spare parts, operating and auxiliary materials) carried out (bills of materials; programs; scheduling)?"
+      ],
+      [
+       "g32",
+       "32",
+       "Ersatzteile Anlagen",
+       "Spare parts machines"
+      ],
+      [
+       "g33",
+       "33",
+       "Ersatzteile Werkzeuge",
+       "Spare parts tools"
+      ],
+      [
+       "g34",
+       "34",
+       "Betriebs- und Hilfsstoffe",
+       "Operating and auxiliary materials"
+      ],
+      [
+       "g35",
+       "35",
+       "Qualität der Ersatzteillager / Ordnung",
+       "Quality of spare parts storage / organization"
+      ],
+      [
+       "g36",
+       "36",
+       "Qualität der Ersatzteillager / Sicherheitsbestände",
+       "Quality of spare parts inventory / safety stocks"
+      ]
+     ]
+    },
+    {
+     "id": "H",
+     "name": "Kennzahlen",
+     "items": [
+      [
+       "g37",
+       "37",
+       "Gibt es Instandhaltungs-Kennzahlen?",
+       "Are there maintenance indicators?"
+      ],
+      [
+       "g38",
+       "38",
+       "Nutzung von Kennzahlen",
+       "KPI"
+      ]
+     ]
+    },
+    {
+     "id": "I",
+     "name": "Arbeits- & Umweltschutz",
+     "items": [
+      [
+       "g39",
+       "39",
+       "Arbeits- und Umweltschutz und technische Sicherheit",
+       "Occupational safety, environmental protection and technical safety"
+      ]
+     ]
+    }
+   ]
+  },
+  "maschine": {
+   "name": "Maschine",
+   "short": "Maschine",
+   "sheet": "Auditcheckliste_Maschine",
+   "desc": "Audit einer einzelnen Anlage: Zustand, vorbeugende IH, Technik, Rüsten und Störungen (13 Prüfpunkte).",
+   "objLabel": "Maschinenbezeichnung",
+   "rateLabel": "M.Z. (Maschinenzustand)",
+   "cats": [
+    {
+     "id": "A",
+     "name": "Zustand",
+     "items": [
+      [
+       "m1",
+       "1",
+       "Allgemeiner Zustand der Maschine (Sauberkeit, Umgebung, Bezeichnung?)",
+       ""
+      ]
+     ]
+    },
+    {
+     "id": "B",
+     "name": "Vorbeugende Instandhaltung",
+     "items": [
+      [
+       "m2",
+       "2",
+       "Existiert eine vorbeugende Instandhaltung (aktuell / wird sie gelebt und optimiert?)",
+       ""
+      ],
+      [
+       "m2_1",
+       "2.1",
+       "Gibt es Schmierpläne für diese Maschine?",
+       ""
+      ],
+      [
+       "m2_2",
+       "2.2",
+       "Sind die Schmierarbeiten gemäß den vorgegebenen Schmierintervallen durchgeführt?",
+       ""
+      ],
+      [
+       "m2_3",
+       "2.3",
+       "Gibt es Nachweise über die wöchentlich, monatlich, … durchgeführten Wartungs- und Inspektionsarbeiten?",
+       ""
+      ],
+      [
+       "m2_4",
+       "2.4",
+       "Verwaltung der technischen Dokumentation (Stücklisten, Maschinenbeschreibung, technische Zeichnungen)?",
+       ""
+      ]
+     ]
+    },
+    {
+     "id": "C",
+     "name": "Funktion & Zustand der Technik",
+     "items": [
+      [
+       "m2_5",
+       "2.5",
+       "Funktion und Zustand der Mechanik (bezogen auf durchgeführte Inspektion, siehe Checkliste)",
+       ""
+      ],
+      [
+       "m2_6",
+       "2.6",
+       "Funktion und Zustand der Hydraulik (bezogen auf durchgeführte Inspektion, siehe Checkliste)",
+       ""
+      ],
+      [
+       "m2_7",
+       "2.7",
+       "Funktion und Zustand der Pneumatik (bezogen auf durchgeführte Inspektion, siehe Checkliste)",
+       ""
+      ],
+      [
+       "m2_8",
+       "2.8",
+       "Funktion und Zustand der Elektrik (bezogen auf durchgeführte Inspektion, siehe Checkliste)",
+       ""
+      ]
+     ]
+    },
+    {
+     "id": "D",
+     "name": "Rüsten & Störungen",
+     "items": [
+      [
+       "m3",
+       "3",
+       "Gibt es eine definierte Vorgehensweise beim Rüsten (Qualifikationsmatrix)?",
+       ""
+      ],
+      [
+       "m4",
+       "4",
+       "Vorgehensweise bei ungeplanten Störungen (Schwachstellenanalyse)",
+       ""
+      ],
+      [
+       "m4_1",
+       "4.1",
+       "Ist ein Ablauf / Maßnahmenplan / Qualifikation der Mitarbeiter für schnelle Reparatur beschrieben?",
+       ""
+      ]
+     ]
+    }
+   ]
+  },
+  "werkzeug": {
+   "name": "Werkzeuge",
+   "short": "Werkzeug",
+   "sheet": "Auditcheckliste_Werkzeuge",
+   "desc": "Audit eines Werkzeugs: Zustand, Ersatzteile, Wartungsanweisungen, Dokumentation, Verschleißkriterien (10 Prüfpunkte).",
+   "objLabel": "Werkzeug",
+   "rateLabel": "WKZ (Werkzeugzustand)",
+   "cats": [
+    {
+     "id": "A",
+     "name": "Zustand",
+     "items": [
+      [
+       "w1",
+       "1",
+       "Allgemeiner Zustand der Werkzeuge",
+       ""
+      ],
+      [
+       "w1_1",
+       "1.1",
+       "Sauberkeit",
+       ""
+      ],
+      [
+       "w1_2",
+       "1.2",
+       "Lagerung",
+       ""
+      ],
+      [
+       "w1_3",
+       "1.3",
+       "Schmierung",
+       ""
+      ]
+     ]
+    },
+    {
+     "id": "B",
+     "name": "Ersatzteile",
+     "items": [
+      [
+       "w2",
+       "2",
+       "Ersatzteile für oben genanntes Werkzeug",
+       ""
+      ]
+     ]
+    },
+    {
+     "id": "C",
+     "name": "Inspektion & Wartung",
+     "items": [
+      [
+       "w3",
+       "3",
+       "Gibt es Anweisungen für Inspektion und Wartung der Werkzeuge?",
+       ""
+      ],
+      [
+       "w3_1",
+       "3.1",
+       "Funktion und Zustand der Werkzeuge (bezogen auf durchgeführte Inspektion, siehe Checkliste)",
+       ""
+      ]
+     ]
+    },
+    {
+     "id": "D",
+     "name": "Dokumentation",
+     "items": [
+      [
+       "w4",
+       "4",
+       "Verwaltung der technischen Dokumentation (Stücklisten, Werkzeugbeschreibung, technische Zeichnungen)?",
+       ""
+      ]
+     ]
+    },
+    {
+     "id": "E",
+     "name": "Verschleiß & Instandsetzung",
+     "items": [
+      [
+       "w5",
+       "5",
+       "Nach welchen Kriterien entscheidet Instandhalter/Meister, dass ein Werkzeug verschleißbedingt überholt werden muss? Sind diese Kriterien schriftlich festgelegt, und wo?",
+       ""
+      ],
+      [
+       "w5_1",
+       "5.1",
+       "Vorgehensweise bei Nacharbeit und Instandsetzung der Werkzeuge",
+       ""
+      ]
+     ]
+    }
+   ]
+  },
+  "kompakt": {
+   "name": "Kompakt-Audit Anlage · Werkzeuge · Ersatzteile",
+   "short": "Kompakt",
+   "sheet": "Auditcheckliste_1",
+   "desc": "Schnellcheck mit Normfragen aus ISO/TS 16949:2009 (heute IATF 16949) zu vorbeugender Instandhaltung und Ordnung (24 Prüfpunkte).",
+   "objLabel": "Maschinenbezeichnung",
+   "rateLabel": "Zustand",
+   "cats": [
+    {
+     "id": "A",
+     "name": "Anlage",
+     "items": [
+      [
+       "k1",
+       "A1",
+       "Allgemeiner Zustand der Maschine (Sauberkeit, Umgebung)",
+       ""
+      ],
+      [
+       "k2",
+       "A2",
+       "Existiert eine vorbeugende Instandhaltung (aktuell / wird sie gelebt)?",
+       ""
+      ],
+      [
+       "k3",
+       "A3",
+       "Gibt es Schmierpläne in der Nähe der Maschinen?",
+       ""
+      ],
+      [
+       "k4",
+       "A4",
+       "Gibt es Nachweise über die wöchentlich, monatlich, … durchgeführten Wartungs- und Inspektionsarbeiten?",
+       ""
+      ],
+      [
+       "k5",
+       "A5",
+       "Sind die Schmierarbeiten gemäß den vorgegebenen Schmierintervallen durchgeführt?",
+       ""
+      ],
+      [
+       "k6",
+       "A6",
+       "Wie werden ungeplante Reparaturen durchgeführt? Werden Betriebsmittel dafür bereitgestellt?",
+       ""
+      ],
+      [
+       "k7",
+       "A7",
+       "Sicherheitseinrichtungen an der Anlage?",
+       ""
+      ],
+      [
+       "k8",
+       "A8",
+       "Werden die Instandhalter geschult?",
+       ""
+      ],
+      [
+       "k9",
+       "A9",
+       "Technische Dokumente (System, Stücklisten, technische Zeichnungen)",
+       ""
+      ],
+      [
+       "k10",
+       "A10",
+       "Werden die Anlagen bereitgestellt?",
+       ""
+      ],
+      [
+       "k11",
+       "A11",
+       "Betreuung",
+       ""
+      ]
+     ]
+    },
+    {
+     "id": "N",
+     "name": "Normanforderungen (ISO/TS 16949)",
+     "items": [
+      [
+       "n1",
+       "N1",
+       "Ermittelt die Organisation die für Schlüsselprozesse notwendigen Anlagen, stellt sie Ressourcen für die Instandhaltung der Maschinen und Betriebsmittel bereit und baut sie ein wirksames, geplantes, vorbeugendes Instandhaltungssystem auf?",
+       "ISO/TS 16949:2009, 7.5.1.4"
+      ],
+      [
+       "n2a",
+       "N2a",
+       "Umfasst das vorbeugende Instandhaltungssystem geplante Instandhaltungstätigkeiten?",
+       "ISO/TS 16949:2009, 7.5.1.4"
+      ],
+      [
+       "n2b",
+       "N2b",
+       "… Verpackung und Konservierung von Betriebsmitteln, Werkzeugen und Prüfmitteln?",
+       "ISO/TS 16949:2009, 7.5.1.4"
+      ],
+      [
+       "n2c",
+       "N2c",
+       "… Verfügbarkeit von Ersatzteilen für Produktionseinrichtungen von Schlüsselprozessen?",
+       "ISO/TS 16949:2009, 7.5.1.4"
+      ],
+      [
+       "n2d",
+       "N2d",
+       "… Dokumentation, Bewertung und Weiterentwicklung der Instandhaltungsziele?",
+       "ISO/TS 16949:2009, 7.5.1.4"
+      ],
+      [
+       "n3",
+       "N3",
+       "Hält die Organisation ihre Betriebsstätten in einem ordentlichen, sauberen Zustand und sorgt sie für deren Instandhaltung im Einklang mit den Erfordernissen des Produkts?",
+       "ISO/TS 16949:2009, 6.4.2"
+      ]
+     ]
+    },
+    {
+     "id": "W",
+     "name": "Werkzeuge & Ersatzteile",
+     "items": [
+      [
+       "k12",
+       "W1",
+       "Allgemeiner Zustand der Werkzeuge (Sauberkeit, Umgebung)",
+       ""
+      ],
+      [
+       "k13",
+       "W2",
+       "Technische Dokumente Werkzeuge (System, Stücklisten, technische Zeichnungen)",
+       ""
+      ],
+      [
+       "k14",
+       "W3",
+       "Nach welchen Kriterien entscheidet Instandhalter/Meister, dass ein Werkzeug verschleißbedingt überholt werden muss?",
+       ""
+      ],
+      [
+       "k15",
+       "W4",
+       "Gibt es ein Werkzeugmanagement? Werkzeugmappen?",
+       ""
+      ],
+      [
+       "k16",
+       "E1",
+       "Allgemeiner Zustand der Ersatzteile (Sauberkeit, Umgebung)",
+       ""
+      ],
+      [
+       "k17",
+       "E2",
+       "Existieren flächendeckend Ersatzteillisten für eigen- und fremdgefertigte Maschinen?",
+       ""
+      ],
+      [
+       "k18",
+       "E3",
+       "Technische Dokumente Ersatzteile (System, Stücklisten, technische Zeichnungen)",
+       ""
+      ]
+     ]
+    }
+   ]
+  }
+ },
+ "MF": [
+  [
+   "f1",
+   "Anlagennummer",
+   ""
+  ],
+  [
+   "f2",
+   "Inventarnummer",
+   ""
+  ],
+  [
+   "f3",
+   "Hersteller",
+   ""
+  ],
+  [
+   "f4",
+   "Typ",
+   ""
+  ],
+  [
+   "f5",
+   "Seriennummer",
+   ""
+  ],
+  [
+   "f6",
+   "Baujahr",
+   ""
+  ],
+  [
+   "f7",
+   "Prozess",
+   ""
+  ],
+  [
+   "f8",
+   "Gewicht",
+   ""
+  ],
+  [
+   "f9",
+   "Länge / Breite / Höhe",
+   ""
+  ],
+  [
+   "f10",
+   "Werkzeuge vorhanden?",
+   ""
+  ],
+  [
+   "f11",
+   "Maschinen-/Prozessbesonderheiten / Grenzen",
+   "z. B. Temperatur, Druck bis 500 bar, Materialdicke, Produktlänge"
+  ],
+  [
+   "f12",
+   "Zustand der Anlage",
+   ""
+  ],
+  [
+   "f13",
+   "Automatisierungsgrad",
+   ""
+  ],
+  [
+   "f14",
+   "CE-Kennzeichnung",
+   ""
+  ],
+  [
+   "f15",
+   "Technische Dokumentation vorhanden?",
+   "Digital / Papier"
+  ],
+  [
+   "f16",
+   "Ersatzteile vorhanden",
+   ""
+  ],
+  [
+   "f17",
+   "Kritische Maschine [A / B / C]",
+   "A, B oder C"
+  ],
+  [
+   "f18",
+   "Verfügbarkeit Ersatzmaschine",
+   ""
+  ],
+  [
+   "f19",
+   "Absaugung (Ist-Zustand)",
+   ""
+  ],
+  [
+   "f20",
+   "Netzwerkanschluss erforderlich",
+   ""
+  ],
+  [
+   "f21",
+   "Druckluft erforderlich",
+   ""
+  ],
+  [
+   "f22",
+   "Gase",
+   "CO2 / N2 / He / ArH 90/10 / ArH 80/20 / Argon 4.6 / H2 / C2H2 (Acetylen) / Sagox 2K (Argon-CO2-Gemisch)"
+  ],
+  [
+   "f23",
+   "Kühlwasser",
+   "Wasserart / Abwasser / Entsorgung"
+  ],
+  [
+   "f24",
+   "Frischwasser",
+   ""
+  ],
+  [
+   "f25",
+   "Hydraulik",
+   ""
+  ],
+  [
+   "f26",
+   "Wassergefährdungsklasse (WGK)",
+   "Gesamtvolumen in der Anlage [m³] / Rückhaltevolumen [m³]"
+  ],
+  [
+   "f27",
+   "Nennleistung [kW]",
+   "Vorsicherung [A], Spannung [V], Anschlussart (z. B. direkt, CEE-Stecker 16 A)"
+  ],
+  [
+   "f28",
+   "Umgebung",
+   "Raumklimatisierung / Temp., Bekranung + Hebelast [t], Boden-/Fundamentanforderungen, Schallemission [dB], Zugangsbeschränkung / Zugänglichkeit"
+  ]
+ ],
+ "TM": [
+  {
+   "id": "m-4977",
+   "name": "Positionneuer (Rundschweißtisch)",
+   "equip": "",
+   "source": "Checkliste_Maschine_Schweiß_dre",
+   "fields": {
+    "f1": {
+     "v": "4977"
+    },
+    "f2": {
+     "v": "207-16.PS7"
+    },
+    "f4": {
+     "v": "S464"
+    },
+    "f7": {
+     "v": "Rundschweißen / Rundschweißtisch"
+    },
+    "f8": {
+     "v": "250 kg"
+    },
+    "f9": {
+     "v": "1 x 0,7 x 1,8"
+    },
+    "f12": {
+     "v": "70–90 %"
+    },
+    "f13": {
+     "v": "manuell / Schweißen"
+    },
+    "f14": {
+     "v": "ja"
+    },
+    "f15": {
+     "v": "ja"
+    },
+    "f16": {
+     "v": "–"
+    },
+    "f17": {
+     "v": "B"
+    },
+    "f19": {
+     "v": "ja / D = 80 mm"
+    },
+    "f20": {
+     "v": "–"
+    },
+    "f21": {
+     "v": "optional / empfohlen"
+    },
+    "f22": {
+     "v": "Argon"
+    },
+    "f23": {
+     "v": "–"
+    },
+    "f24": {
+     "v": "–"
+    },
+    "f25": {
+     "v": "–"
+    },
+    "f26": {
+     "v": "Eher bei Reinigungsstoffen, die beim Schweißen verwendet werden"
+    },
+    "f27": {
+     "v": "0,6 kW / Anschluss 16 A"
+    },
+    "f28": {
+     "v": "–"
+    }
+   }
+  },
+  {
+   "id": "m-marqueuse",
+   "name": "Marqueuse Laser (Laserbeschriftung)",
+   "equip": "",
+   "source": "Checkliste_Maschine_div",
+   "fields": {
+    "f2": {
+     "v": "206-16.M3"
+    },
+    "f3": {
+     "v": "SIC"
+    },
+    "f4": {
+     "v": "XL-Box 4"
+    },
+    "f7": {
+     "v": "Prüfen"
+    },
+    "f8": {
+     "v": "250 kg"
+    },
+    "f9": {
+     "v": "1,9 x 0,7 x 2,2"
+    },
+    "f12": {
+     "v": "70–90 %"
+    },
+    "f13": {
+     "v": "manuell"
+    },
+    "f14": {
+     "v": "ja"
+    },
+    "f16": {
+     "v": "–"
+    },
+    "f17": {
+     "v": "A"
+    },
+    "f20": {
+     "v": "ja"
+    },
+    "f21": {
+     "v": "ja"
+    },
+    "f23": {
+     "v": "–"
+    },
+    "f24": {
+     "v": "–"
+    },
+    "f25": {
+     "v": "–"
+    },
+    "f28": {
+     "v": "–"
+    }
+   }
+  },
+  {
+   "id": "m-dichtheit",
+   "name": "Détecteur de fuite (Dichtheitsprüfgerät)",
+   "equip": "293",
+   "source": "Checkliste_Maschine_Schweiß (2)",
+   "fields": {
+    "f2": {
+     "v": "XXX",
+     "n": "Equipment-Nr.: 293"
+    },
+    "f3": {
+     "v": "Oerlikon Leybold"
+    },
+    "f4": {
+     "v": "Phoenixl 300 Modul",
+     "n": "Serie 32"
+    },
+    "f5": {
+     "v": "90001232041"
+    },
+    "f8": {
+     "v": "150 kg"
+    },
+    "f9": {
+     "v": "0,8 x 0,8 x 1,2"
+    },
+    "f12": {
+     "v": "70–90 %"
+    },
+    "f13": {
+     "v": "Halbautomatik"
+    },
+    "f14": {
+     "v": "ja"
+    },
+    "f16": {
+     "v": "–"
+    },
+    "f17": {
+     "v": "A"
+    },
+    "f20": {
+     "v": "–"
+    },
+    "f21": {
+     "v": "optional / empfohlen"
+    },
+    "f22": {
+     "v": "Helium"
+    },
+    "f23": {
+     "v": "–"
+    },
+    "f24": {
+     "v": "–"
+    },
+    "f25": {
+     "v": "–"
+    },
+    "f27": {
+     "v": "0,4 kW / 400 V / 16 A"
+    },
+    "f28": {
+     "v": "–"
+    }
+   }
+  },
+  {
+   "id": "m-orbital",
+   "name": "Orbital Welding Frames x5",
+   "equip": "",
+   "source": "Checkliste_Maschine_Daten",
+   "fields": {}
+  }
+ ]
+}
