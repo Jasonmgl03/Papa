@@ -52,7 +52,7 @@ Unter „Export & Daten“:
 | Bereich | Inhalt |
 |---|---|
 | **Übersicht** | Kennzahlen, Erfüllungsgrad im Verlauf, letztes Audit mit Auswertung je Kapitel, offene Maßnahmen, Maschinenpark nach Kritikalität A/B/C |
-| **Audits** | Vier Checklisten aus der Vorlage: *Instandhaltung allgemein* (39 Punkte, DE/EN), *Maschine* (13), *Werkzeuge* (10), *Kompakt-Audit Anlage · Werkzeuge · Ersatzteile* mit den Normfragen aus ISO/TS 16949 (21). Bewertung N.I.O / bed. OK / OK / n. b. wie in der Vorlage |
+| **Audits** | Vier Checklisten aus der Vorlage: *Instandhaltung allgemein* (39 Punkte, DE/EN), *Maschine* (13), *Werkzeuge* (10), *Kompakt-Audit Anlage · Werkzeuge · Ersatzteile* mit den Normfragen aus ISO/TS 16949 (24). Bewertung N.I.O / bed. OK / OK / n. b. wie in der Vorlage |
 | **Bericht** | Ergebnis, Diagramme, Maßnahmenplan, alle Prüfpunkte und Unterschriftsfelder – druckbar bzw. als PDF |
 | **Maßnahmen** | Alle Befunde mit N.I.O oder bed. OK, mit Verantwortlichem, Termin und Status (offen / überfällig / erledigt) |
 | **Maschinen** | Stammblatt mit den 28 Angaben aus „Checkliste_Maschine_Daten“; die drei ausgefüllten Maschinen aus der Vorlage sind bereits übernommen |
@@ -60,3 +60,8 @@ Unter „Export & Daten“:
 | **Daten** | Backup (.json) speichern/laden, Maßnahmen als CSV für Excel, Einstellungen (Firma, Gewichtung „bed. OK“, Ampelgrenzen) |
 
 **Erfüllungsgrad** = (OK + Gewicht × bed. OK) ÷ (N.I.O + bed. OK + OK). Die Vorlage enthält dafür keine Formel; Gewicht (Standard 50 %) und Ampelgrenzen (grün ab 85 %, gelb ab 60 %) sind deshalb einstellbar.
+
+## Excel-Fassung
+
+`Instandhaltungs-Audit.xlsx` enthält dieselben Checklisten als Excel-Mappe ohne Makros:
+*Übersicht* (Einstellungen, Ergebnis je Checkliste, Diagramme), *Audit_Allgemein*, *Audit_Maschine*, *Audit_Werkzeuge*, *Audit_Kompakt* (Bewertung per Auswahlliste, Ampelfarben, Auswertung je Kapitel mit Diagramm), *Maßnahmen* (sammelt alle N.I.O/bed. OK automatisch), *Maschinen* (Stammdaten-Register), *Stammblatt* (eine Maschine druckfertig), *Wissen* (Normen, Strategien, Kennzahlen-Rechner) und *Anleitung*. Eingaben nur in gelben Zellen.
