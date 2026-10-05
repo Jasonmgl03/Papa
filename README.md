@@ -42,3 +42,18 @@ Im Druckdialog kannst du auch „Als PDF speichern“ wählen.
 Unter „Export & Daten“:
 - **Firma / Abteilung** – erscheint auf jedem Ausdruck
 - **Vorwarnzeit** – wie viele Tage vor der Fälligkeit eine Aufgabe als „Bald fällig“ angezeigt wird (Standard: 14 Tage)
+
+---
+
+# Arbeitstagebuch (Excel)
+
+`Arbeitstagebuch.xlsx` – tägliche Aufgaben schnell erfassen und die Zeit im Dashboard auswerten.
+
+| Blatt | Inhalt |
+|---|---|
+| **Dashboard** | Stunden heute / Woche / Monat, Wochenziel in %, Ø pro Arbeitstag, offene Aufgaben, Stunden je Projekt mit Budget-Verbrauch, Deadlines mit Ampel, Zeit je Kategorie, Diagramm der letzten 14 Tage |
+| **Eingabe** | Eine Zeile pro Aufgabe: Datum (`Strg + .`), Projekt und Kategorie per Auswahlliste, Aufgabe, Dauer in Stunden *oder* Start/Ende, Status, Priorität, Notiz. Wochentag, KW, Monat und Stunden rechnet Excel selbst. |
+| **Projekte** | Eigene Projekte mit Budget und Deadline sowie die Auswahllisten (Kategorie, Status, Priorität) |
+| **Anleitung** | Kurzanleitung, Tastenkürzel und Tipps zur Zeitplanung |
+
+Die Beispielzeilen und -projekte können gelöscht werden (Inhalte mit `Entf` löschen, nicht ganze Zeilen).
