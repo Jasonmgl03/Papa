@@ -42,3 +42,17 @@ Im Druckdialog kannst du auch „Als PDF speichern“ wählen.
 Unter „Export & Daten“:
 - **Firma / Abteilung** – erscheint auf jedem Ausdruck
 - **Vorwarnzeit** – wie viele Tage vor der Fälligkeit eine Aufgabe als „Bald fällig“ angezeigt wird (Standard: 14 Tage)
+
+## Audit Instandhaltung allgemein (Excel)
+
+Im Ordner `Audit/`:
+
+| Datei | Zweck |
+|---|---|
+| `Audit_IH_Allgemein_Vorlage.xlsx` | Leere Audit-Mappe zum Ausfüllen |
+| `Audit_IH_Allgemein_Beispiel.xlsx` | Gleiche Mappe mit erfundenen Beispielbewertungen (zeigt das Dashboard) |
+| `build_audit_allgemein.py` | Erzeugt beide Dateien; Grundlage für weitere Audits (Maschinen, Anlagen) |
+
+Blätter: **Dashboard** (Erfüllungsgrad, Ampel, Kapitel, Diagramme, kritische Befunde, Fazit, Unterschrift) ·
+**Checkliste** (63 Prüfpunkte: 39 aus der Vorlage + 24 neue, markiert mit „NEU“) · **Maßnahmenplan** (automatisch) ·
+**Einstellungen** (Gewichte, Ampelgrenzen, Kapitel) · **Anleitung**.
