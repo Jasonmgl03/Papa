@@ -57,3 +57,5 @@ Unter „Export & Daten“:
 | **Anleitung** | Kurzanleitung, Tastenkürzel und Tipps zur Zeitplanung |
 
 Die Beispielzeilen und -projekte können gelöscht werden (Inhalte mit `Entf` löschen, nicht ganze Zeilen).
+
+Die Datei wird mit `python3 tools/arbeitstagebuch_erstellen.py` (benötigt `openpyxl`) erzeugt – Änderungen am Aufbau dort vornehmen.
