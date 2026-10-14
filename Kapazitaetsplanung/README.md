@@ -1,27 +1,16 @@
-# Personalbedarf Instandhaltung BB2 – Umsetzung
+# Maintenance BB2 – Staffing & Capacity Dashboard
 
 | Datei | Inhalt |
 |---|---|
-| `Personalbedarf_BB2_Instandhaltung_einfach.xlsx` | Einfache Personalbedarfsrechnung (1 Blatt) + Originalblatt zum Nachschlagen |
+| `Maintenance_BB2_Staffing_Dashboard.xlsx` | Englische Arbeitsmappe: **Management Dashboard** + **Capacity Planning** (Eingabe) |
 | `Kapaplanung_BB2_Instandhaltung_Planug_Umsetzung_ORIGINAL.xlsm` | Ausgangsdatei (Stand 21.07.2025), unverändert |
-| `build_kapaplanung.py` | Erzeugt die einfache Datei aus dem Original |
+| `build_kapaplanung.py` | Erzeugt die Arbeitsmappe (`python build_kapaplanung.py <ziel.xlsx>`) |
 
-## So funktioniert die Rechnung
-
-1. Für jede Aufgabe eintragen: **Stunden pro Tag**
-2. Stunden pro Jahr = Stunden pro Tag × 250 Arbeitstage
-3. Mitarbeiter = Stunden pro Jahr ÷ 1.750 Stunden je Mitarbeiter
-4. Dazu kommen Urlaub (38 von 220 Tagen = 17,3 %) und Krankheit (4,1 %)
+## Bedienung
+Auf dem Blatt **Capacity Planning** nur die gelben Felder ausfüllen (vor allem *Hours per day*).
+Woche, Monat, Jahr, Mitarbeiter (FTE), Anteile, KPI-Kacheln und das Kuchendiagramm rechnen automatisch.
 
 ## Ergebnis (Stand 21.07.2025)
-
-| | Mitarbeiter |
-|---|---|
-| Für die Aufgaben | 4,0 |
-| + Urlaub | 0,7 |
-| + Krankheit | 0,2 |
-| **Benötigt gesamt** | **4,9 (aufgerundet 5 Personen)** |
-| Vorhanden | 4 |
-| **Es fehlen** | **0,9** |
-
-Gelbe Felder können geändert werden, alles andere rechnet automatisch.
+- Total hours per year: **7,025 h**
+- Required headcount: **4.9** (5 persons rounded up) · current headcount 4 · staffing gap **−0.9**
+- Avg. workload per employee: **1,756 h/year** (146 h/month, 35.1 h/week) vs. capacity 1,750 h → utilisation 100 %
