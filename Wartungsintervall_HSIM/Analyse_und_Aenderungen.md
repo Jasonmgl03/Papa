@@ -1,7 +1,59 @@
 # Wartungsintervallberechnung große Wartung – horizontale Simultanbalgmaschine (HSIM)
 
 **Vorversion:** Stand 01 / 03.02.2009 (`.xlsm`, 10 Blätter, Makro „NeueZeile“)
-**Neue Version:** Stand 02 (Entwurf) / 17.10.2026 – `Wartungsintervall_grosse_Wartung_horizontale_Balgmaschine_Stand02.xlsx`
+**Aktuelle Version:** Stand 03 (Entwurf) / 17.10.2026 – `Wartungsplan_grosse_Wartung_horizontale_Balgmaschine_Stand03.xlsx`
+(Stand 02 ist in der Git-Historie enthalten.)
+
+---
+
+## Stand 03 – Vereinfachung und flexible Intervalle
+
+### Analyse von Stand 02
+
+| Problem | Folge |
+|---|---|
+| 11 Blätter, Wartungsplan mit 36 Spalten | Unübersichtlich; man muss viel scrollen und zwischen Blättern wechseln. |
+| Termine in einem eigenen Blatt „Durchführungsnachweis“ | Doppelte Pflege (Nr., Maßnahme, Intervall stehen zweimal); Risiko von Abweichungen. |
+| Intervalle nur in Wochen (täglich … 16 Wochen, halbjährlich, jährlich) | Keine Monatsintervalle, keine mehrjährigen Prüfungen, keine freie Eingabe; Termine nicht kalendergenau. |
+| Für ein Intervall drei Spalten (berechnet / festgelegt / Wochen) | Unklar, wo man etwas einträgt. |
+| Risikobewertung (selten geändert) zwischen den Tagesdaten | Lenkt im Alltag ab. |
+| Dashboard ohne Liste „Was ist jetzt zu tun?“ | Fällige Maßnahmen müssen im Plan gesucht werden. |
+
+### Lösung (umgesetzt)
+
+- **7 statt 11 Blätter:** Start · Dashboard · Wartungsplan · Bewertung & Methodik · Anlagenübersicht · Einstellungen · Dokumentation.
+- **Ein Wartungsplan für alles:** Eine Zeile pro Maßnahme enthält Maßnahme, Intervall, letzte Durchführung, nächsten Termin, Ampel und Nachweis. Die Tagesansicht hat 16 Spalten. Risikobewertung und Vorversion lassen sich über [+] aufklappen, technische Hilfsspalten sind ausgeblendet.
+- **Intervalle:**
+  - Auswahlliste mit wöchentlich, monatlich, alle 3 Monate, alle 4 Monate, halbjährlich und jährlich, dazu 8/16 Wochen (Ergebnis der RPZ-Methode) sowie 2 und 5 Jahre.
+  - Freie Eingabe als „Zahl + Einheit“, z. B. „2 Jahre“, „18 Monate“, „10 Tage“, „alle 2 Jahre“.
+  - Monate und Jahre werden kalendergenau gerechnet (EDATE).
+  - Nicht erkannte Eingaben werden rot als „Intervall prüfen“ markiert.
+  - Den Katalog kann man in den Einstellungen erweitern.
+- **Ampel:**
+  - Rot = überfällig.
+  - Gelb = fällig innerhalb der Vorwarnzeit. Standard sind 14 Tage, höchstens aber ¼ des Intervalls, damit wöchentliche Maßnahmen nicht dauerhaft gelb sind.
+  - Grün = in Ordnung.
+  - Grau = nicht erfasst, Intervall fehlt oder ist zu prüfen.
+- **Dashboard:**
+  - Kacheln für Überfällig, Fällig, In Ordnung, Erfüllungsgrad, Maßnahmen gesamt, nicht erfasst, Intervall fehlt/prüfen und Erfassungsgrad.
+  - Liste „Zu erledigen“, nach Termin sortiert.
+  - Maßnahmen pro Intervall mit Diagramm, Status und Risiko je Baugruppe.
+  - Die Risikoauswertungen aus Stand 02 bleiben erhalten.
+- **Zusammengeführte Spalten:**
+  - „Hinweis“ und „Hilfsmittel“ zu einer Spalte.
+  - „Begründung“ und „Bemerkung“ zu einer Spalte.
+  - Die Positionsnummer steht jetzt im Baugruppentitel.
+  - Für das Intervall gibt es nur noch „Empfehlung (RPZ)“ (farbig nach Risikoklasse) und „Intervall“ als Eingabe. Abweichungen von der Empfehlung werden blau markiert.
+
+**Erhalten:** alle Maßnahmen, Texte, Bilder, Bewertungen und Verknüpfungen, alle Originaltexte und alten Nummern sowie alle Kennzahlen aus Stand 02. RPZ und Empfehlung sind für alle 88 Maßnahmen identisch zur Vorversion, maschinell geprüft.
+
+**Bewusst geändert:** Für die Klasse „kritisch“ wird jetzt „monatlich“ statt „4 Wochen“ empfohlen. Derzeit ist keine Maßnahme betroffen.
+
+**Offene Entscheidung:** Die RPZ-Methode empfiehlt 8 bzw. 16 Wochen. Wenn stattdessen Standardintervalle gelten sollen (z. B. hoch → monatlich, mittel → alle 3 oder 4 Monate), stellt man das unter Einstellungen → Abschnitt 2 um. Es wirkt sofort auf alle Maßnahmen ohne manuelle Festlegung.
+
+---
+
+# Stand 02 – Analyse und Überarbeitung der Vorversion
 
 ---
 
